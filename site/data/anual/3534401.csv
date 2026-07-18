@@ -1,0 +1,4 @@
+ano,cultura,area_plantada_ha,area_colhida_ha,producao_t,valor_mil_reais,rend_kg_ha,anom_rend_pct,delta_rend_pct,fase,forte,chuva_out_mar_mm,veranico_max_out_mar,dias_tmax34_out_mar
+1985,feijao,,4,2,0,500,,,LN,0,867,17,0
+1986,feijao,,2,1,0,500,,0,N,0,943,16,0
+1992,feijao,1,1,1,6e-04,1000,,,EN,1,1032,14,0

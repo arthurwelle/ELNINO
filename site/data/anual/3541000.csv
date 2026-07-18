@@ -1,0 +1,15 @@
+ano,cultura,area_plantada_ha,area_colhida_ha,producao_t,valor_mil_reais,rend_kg_ha,anom_rend_pct,delta_rend_pct,fase,forte,chuva_out_mar_mm,veranico_max_out_mar,dias_tmax34_out_mar
+1989,arroz,2,2,2,0,1000,,,LN,1,1698,8,1
+1990,arroz,2,2,2,0,1000,,0,N,0,1460,9,6
+1991,arroz,2,2,2,0,1000,,0,N,0,1734,9,1
+1984,feijao,,20,24,0,1200,,,LN,0,1620,17,10
+1985,feijao,,10,10,0,1000,,-16.7,LN,0,1720,6,4
+1986,feijao,,20,20,0,1000,,0,N,0,1748,12,8
+1987,feijao,,20,20,0,1000,,0,EN,0,2057,15,4
+1988,feijao,22,22,23,0,1045,,4.5,EN,0,2014,11,11
+1989,feijao,15,15,9,0,600,,-42.6,LN,1,1698,8,1
+1990,feijao,7,7,4,0,571,,-4.8,N,0,1460,9,6
+1991,feijao,7,7,4,2e-04,571,,0,N,0,1734,9,1
+1989,milho,5,5,9,0,1800,,,LN,1,1698,8,1
+1990,milho,5,5,9,0,1800,,0,N,0,1460,9,6
+1991,milho,5,5,9,1e-04,1800,,0,N,0,1734,9,1

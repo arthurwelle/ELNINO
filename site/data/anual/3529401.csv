@@ -1,0 +1,4 @@
+ano,cultura,area_plantada_ha,area_colhida_ha,producao_t,valor_mil_reais,rend_kg_ha,anom_rend_pct,delta_rend_pct,fase,forte,chuva_out_mar_mm,veranico_max_out_mar,dias_tmax34_out_mar
+2015,arroz,1,,,,,,,EN,0,967,16,9
+1980,milho,,19,49,0,2579,,,EN,0,,,
+1981,milho,,67,199,0,2970,,15.2,N,0,826,11,0

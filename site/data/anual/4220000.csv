@@ -1,0 +1,14 @@
+ano,cultura,area_plantada_ha,area_colhida_ha,producao_t,valor_mil_reais,rend_kg_ha,anom_rend_pct,delta_rend_pct,fase,forte,chuva_out_mar_mm,veranico_max_out_mar,dias_tmax34_out_mar
+2016,feijao,4,4,4,11,1000,,,EN,1,1012,10,3
+2017,feijao,8,8,9,18,1125,,12.5,N,0,1030,6,6
+2018,feijao,8,8,9,18,1125,,0,LN,0,1002,7,1
+2013,milho,10,10,50,19,5000,,,N,0,891,12,4
+2014,milho,10,10,50,20,5000,,0,N,0,1005,10,12
+2015,milho,4,4,24,12,6000,,20,EN,0,1066,10,4
+2016,milho,4,4,24,19,6000,,0,EN,1,1012,10,3
+2017,milho,8,8,48,18,6000,,0,N,0,1030,6,6
+2018,milho,8,8,48,33,6000,,0,LN,0,1002,7,1
+2022,milho,7,7,42,61,6000,,,LN,0,822,9,6
+2023,milho,3,3,16,15,5333,,-11.1,LN,0,1055,7,1
+2024,milho,3,3,18,18,6000,,12.5,EN,1,1409,13,4
+2022,soja,3,3,6,18,2000,,,LN,0,822,9,6

@@ -1,0 +1,8 @@
+ano,cultura,area_plantada_ha,area_colhida_ha,producao_t,valor_mil_reais,rend_kg_ha,anom_rend_pct,delta_rend_pct,fase,forte,chuva_out_mar_mm,veranico_max_out_mar,dias_tmax34_out_mar
+1998,arroz,5,4,4,1,1000,,,EN,1,1467,10,4
+1998,cana,2,1,30,3,30000,,,EN,1,1467,10,4
+1999,cana,1,1,30,3,30000,,0,LN,1,1565,4,2
+2000,cana,1,1,30,3,30000,,0,LN,1,1557,4,0
+2001,cana,1,1,30,3,30000,,0,LN,0,1902,8,1
+1998,feijao,8,8,3,1,375,,,EN,1,1467,10,4
+1998,milho,12,10,8,1,800,,,EN,1,1467,10,4

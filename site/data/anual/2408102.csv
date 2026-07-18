@@ -1,0 +1,11 @@
+ano,cultura,area_plantada_ha,area_colhida_ha,producao_t,valor_mil_reais,rend_kg_ha,anom_rend_pct,delta_rend_pct,fase,forte,chuva_out_mar_mm,veranico_max_out_mar,dias_tmax34_out_mar
+1974,feijao,,62,11,0,177,,,LN,1,,,
+1975,feijao,,62,16,0,258,,45.5,LN,0,,,
+1976,feijao,,60,18,0,300,,16.3,LN,1,,,
+1977,feijao,,20,6,0,300,,0,EN,0,,,
+1978,feijao,,20,6,0,300,,0,EN,0,,,
+1974,milho,,40,8,0,200,,,LN,1,,,
+1975,milho,,40,6,0,150,,-25,LN,0,,,
+1976,milho,,35,8,0,229,,52.4,LN,1,,,
+1977,milho,,15,4,0,267,,16.7,EN,0,,,
+1978,milho,,15,5,0,333,,25,EN,0,,,

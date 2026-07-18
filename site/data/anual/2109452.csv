@@ -1,0 +1,11 @@
+ano,cultura,area_plantada_ha,area_colhida_ha,producao_t,valor_mil_reais,rend_kg_ha,anom_rend_pct,delta_rend_pct,fase,forte,chuva_out_mar_mm,veranico_max_out_mar,dias_tmax34_out_mar
+1997,feijao,6,6,2,2,333,,,N,0,781,15,0
+1998,feijao,5,5,2,2,400,,20,EN,1,913,30,1
+1999,feijao,5,5,2,3,400,,0,LN,1,1126,20,0
+2000,feijao,7,7,3,2,429,,7.1,LN,1,1204,17,0
+2001,feijao,12,12,5,5,417,,-2.8,LN,0,960,26,0
+1997,milho,2,2,1,0,500,,,N,0,781,15,0
+1998,milho,2,2,2,0,1000,,100,EN,1,913,30,1
+1999,milho,2,2,2,0,1000,,0,LN,1,1126,20,0
+2000,milho,3,3,2,0,667,,-33.3,LN,1,1204,17,0
+2001,milho,6,6,4,1,667,,0,LN,0,960,26,0
