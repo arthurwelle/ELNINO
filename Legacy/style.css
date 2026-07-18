@@ -1,0 +1,269 @@
+/* === Reset & Base === */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: rgb(215, 218, 221);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* === Header === */
+#app-header {
+  flex-shrink: 0;
+  padding: 10px 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #cce0f0;
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+}
+
+#app-header h1 {
+  font-size: 18px;
+  font-weight: bold;
+  color: #1a3a5c;
+  white-space: nowrap;
+}
+
+#hover-label {
+  font-size: 15px;
+  color: #555;
+  font-style: italic;
+  transition: color 0.2s;
+}
+
+#hover-label.active {
+  font-style: normal;
+  color: #044279;
+  font-weight: bold;
+}
+
+/* === Two-panel layout === */
+#app-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  min-height: 0;
+}
+
+#map-panel {
+  flex: 0 0 60%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+#right-panel {
+  flex: 0 0 40%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* === Controls === */
+#controls {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  padding: 8px 15px;
+  background: #fff;
+  border-bottom: 1px solid #e0eaf2;
+  align-items: center;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.control-group label {
+  font-size: 13px;
+  font-weight: bold;
+  color: #1a3a5c;
+}
+
+.control-group select {
+  font-size: 13px;
+  padding: 3px 8px;
+  border: 1px solid #cce0f0;
+  border-radius: 4px;
+  color: #1a3a5c;
+  cursor: pointer;
+}
+
+/* === Calendar panel (hidden, kept for future use) === */
+#calendar-panel {
+  display: none;
+}
+
+/* === Line chart panel === */
+#linechart-panel {
+  flex: 0 0 auto;
+  min-height: 180px;
+  background: rgb(215, 218, 221);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+}
+
+/* === Cenario comparison chart panel === */
+#comparechart-panel {
+  flex: 0 0 auto;
+  min-height: 180px;
+  background: rgb(215, 218, 221);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  border-top: 1px solid #c8cbce;
+}
+
+/* === Choropleth legend overlay === */
+#choro-legend {
+  position: absolute;
+  bottom: 25px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 6px;
+  padding: 6px 10px;
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* === Loading overlay === */
+#loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.88);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  gap: 15px;
+  font-size: 15px;
+  color: #1a3a5c;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #cce0f0;
+  border-top-color: #1a3a5c;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* === MapLibre canvas === */
+#map-panel .maplibregl-canvas {
+  outline: none;
+}
+
+/* === Hover tooltip === */
+.maplibregl-popup-content {
+  padding: 6px 10px;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  pointer-events: none;
+}
+
+.maplibregl-popup-content strong {
+  color: #1a3a5c;
+}
+
+.maplibregl-popup-content span {
+  color: #666;
+  font-size: 11px;
+}
+
+.maplibregl-popup-tip {
+  display: none;
+}
+
+/* === Calendar SVG === */
+#calendar-panel svg {
+  display: block;
+  overflow: visible;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* === Calendar arc paths === */
+.arc-path {
+  stroke: #ffffff;
+  stroke-width: 1px;
+}
+
+.decendio-label {
+  font-size: 10px;
+  text-anchor: middle;
+  fill: #333;
+  pointer-events: none;
+}
+
+.month-label {
+  font-size: 11px;
+  fill: #000;
+  pointer-events: none;
+}
+
+.center-text {
+  font-size: 14px;
+  text-anchor: middle;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+.center-placeholder {
+  font-size: 12px;
+  text-anchor: middle;
+  fill: #888;
+  font-style: italic;
+  pointer-events: none;
+}
+
+.legend-text {
+  font-size: 12px;
+  alignment-baseline: middle;
+}
+
+.month-divider {
+  stroke: #ccc;
+  stroke-width: 2px;
+  pointer-events: none;
+}
+
+/* === Media variable chart panels === */
+#mediabio-panel, #mediarain-panel, #mediatmax-panel,
+#mediatmin-panel, #mediaisna-panel {
+  flex: 0 0 auto;
+  min-height: 180px;
+  background: rgb(215, 218, 221);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  border-top: 1px solid #c8cbce;
+}

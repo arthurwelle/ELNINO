@@ -76,6 +76,15 @@ export const map = new maplibregl.Map({
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 map.addControl(new maplibregl.AttributionControl({ compact: true }));
 
+// atribuição começa fechada (só o "i"; expande no clique)
+map.on('load', () => {
+  const attrib = document.querySelector('.maplibregl-ctrl-attrib');
+  if (attrib) {
+    attrib.classList.remove('maplibregl-compact-show');
+    attrib.removeAttribute('open');
+  }
+});
+
 const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 12 });
 
 let hoveredId = null;

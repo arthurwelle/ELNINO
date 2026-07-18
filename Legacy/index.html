@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendário de Risco Agrícola</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/pmtiles@3.2.0/dist/pmtiles.js"></script>
+</head>
+<body>
+  <div id="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p id="loading-msg">Inicializando DuckDB...</p>
+  </div>
+  <header id="app-header">
+    <h1>Calendário de Risco Agrícola</h1>
+    <p id="hover-label">Passe o mouse sobre um município no mapa</p>
+  </header>
+  <div id="app-layout">
+    <div id="map-panel">
+      <div id="choro-legend"></div>
+    </div>
+    <div id="right-panel">
+      <div id="controls">
+        <div class="control-group">
+          <label>Cultura</label>
+          <select id="sel-cultura"></select>
+        </div>
+        <div class="control-group">
+          <label>Cenário</label>
+          <select id="sel-cenario"></select>
+        </div>
+      </div>
+      <div id="calendar-panel"></div>
+      <div id="linechart-panel"></div>
+      <div id="comparechart-panel"></div>
+      <div id="mediabio-panel"></div>
+      <div id="mediarain-panel"></div>
+      <div id="mediatmax-panel"></div>
+      <div id="mediatmin-panel"></div>
+      <div id="mediaisna-panel"></div>
+    </div>
+  </div>
+  <script src="script.js" type="module"></script>
+</body>
+</html>

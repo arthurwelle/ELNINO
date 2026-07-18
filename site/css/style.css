@@ -181,9 +181,8 @@ select {
 .info-i:hover, .info-i:focus { background: var(--accent); color: var(--on-accent); }
 .info-tip {
   display: none;
-  position: absolute;
-  left: 20px; top: -6px;
-  z-index: 50;
+  position: fixed; /* escapa do overflow da sidebar; JS posiciona */
+  z-index: 1000;
   width: 230px;
   background: var(--tip-bg);
   color: var(--tip-text);

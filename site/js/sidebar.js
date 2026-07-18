@@ -108,6 +108,25 @@ export function initSidebar() {
   selInd.addEventListener('change', atualizaDesc);
   document.getElementById('exp-aplicar').addEventListener('click', aplicarExplorador);
 
+  // tooltips "i": position fixed calculada no hover (escapa do overflow da sidebar)
+  document.querySelectorAll('.info-i').forEach((icone) => {
+    const tip = icone.querySelector('.info-tip');
+    if (!tip) return;
+    const posiciona = () => {
+      const r = icone.getBoundingClientRect();
+      tip.style.left = `${Math.min(r.right + 8, window.innerWidth - 246)}px`;
+      tip.style.top = `${r.top - 6}px`;
+      requestAnimationFrame(() => {
+        const tr = tip.getBoundingClientRect();
+        if (tr.bottom > window.innerHeight - 8) {
+          tip.style.top = `${Math.max(8, window.innerHeight - tr.height - 8)}px`;
+        }
+      });
+    };
+    icone.addEventListener('mouseenter', posiciona);
+    icone.addEventListener('focus', posiciona);
+  });
+
   // colapsar/expandir
   const btn = document.getElementById('sb-toggle');
   btn.addEventListener('click', () => {

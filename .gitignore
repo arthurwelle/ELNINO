@@ -17,3 +17,6 @@ GEO/ocean_mask.geojson
 Thumbs.db
 desktop.ini
 node_modules/
+
+# config local do Claude Code
+/.claude/
