@@ -1,0 +1,126 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metodologia — El Niño e a Agricultura</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <style>body { overflow: auto; height: auto; }</style>
+</head>
+<body>
+  <header id="app-header">
+    <h1>El Niño e a Agricultura</h1>
+    <a id="link-metodologia" href="./index.html">← Voltar ao mapa</a>
+  </header>
+  <main id="doc">
+    <h1>Metodologia</h1>
+    <p>Este site mostra, município a município, como os anos de <strong>El Niño</strong> e
+       <strong>La Niña</strong> afetaram o clima e a produtividade agrícola no Brasil,
+       para embasar o entendimento de eventos futuros.</p>
+
+    <h2>1. Fontes de dados</h2>
+    <table>
+      <tr><th>Dado</th><th>Fonte</th><th>Período</th></tr>
+      <tr><td>Meteorologia diária (chuva, temperaturas, radiação, vento, umidade)</td>
+          <td>Base Xavier v3.2.4 — dados em grade interpolados no centroide de cada
+              município (centroides da base contínua do IBGE 1:250k, 2023). Exportação:
+              Daniel Victoria (Embrapa), jun/2026</td>
+          <td>1980–2025</td></tr>
+      <tr><td>Evapotranspiração potencial (ETP) e índices de seca SPI/SPEI</td>
+          <td>Derivados da base Xavier</td>
+          <td>1980–2025</td></tr>
+      <tr><td>Produção agrícola municipal (área, produção, valor)</td>
+          <td>IBGE — Pesquisa Agrícola Municipal (PAM)</td>
+          <td>1974–2024</td></tr>
+      <tr><td>Índice ONI (Oceanic Niño Index)</td>
+          <td>NOAA / Climate Prediction Center (<code>oni.ascii.txt</code>)</td>
+          <td>1950–presente</td></tr>
+    </table>
+
+    <h2>2. Classificação dos anos em El Niño, La Niña e Neutro</h2>
+    <p>Usamos o <strong>ONI</strong>, o índice oficial da NOAA: anomalia da temperatura da
+       superfície do mar na região Niño 3.4 do Pacífico, em médias móveis de 3 meses.
+       Trimestre com ONI ≥ +0,5 °C conta como El Niño; ≤ −0,5 °C como La Niña; entre os
+       dois, Neutro.</p>
+    <h3>Convenção de ano-safra</h3>
+    <p>A safra de verão brasileira é plantada de setembro a dezembro e colhida no ano
+       seguinte — e o pico do El Niño ocorre justamente na virada do ano. Por isso cada
+       <strong>ano-safra t</strong> (safra colhida no ano t, que é como a PAM registra)
+       recebe a fase ONI <strong>predominante entre outubro de t−1 e março de t</strong> —
+       a janela de plantio e desenvolvimento da lavoura. Em caso de empate, decide o
+       sinal do ONI de pico.</p>
+    <h3>Eventos fortes</h3>
+    <p>Safra com |ONI de pico| ≥ 1,5 °C é marcada como evento <strong>forte</strong>
+       (El Niño: 1983, 1992, 1998, 2010, 2016, 2024; La Niña: 1989, 1999, 2000, 2008,
+       2011, entre outros). Nos gráficos, esses anos ganham destaque, pois os impactos
+       agrícolas são tipicamente maiores.</p>
+
+    <h2>3. Indicadores climáticos</h2>
+    <ul>
+      <li><strong>SPI</strong> (Standardized Precipitation Index): chuva do período
+          comparada ao histórico do próprio município, em desvios-padrão. 0 = normal;
+          −1 = seco; −2 = seca severa; valores positivos = úmido.</li>
+      <li><strong>SPEI</strong>: como o SPI, mas desconta a evapotranspiração potencial —
+          captura também o efeito do calor. As escalas 1/3/6/12 acumulam 1, 3, 6 ou 12
+          meses. <strong>SPEI-6 medido em março cobre exatamente a janela out–mar da
+          safra</strong>, por isso é o índice de referência do mapa.</li>
+      <li><strong>Balanço hídrico</strong>: chuva − ETP do mês, em mm.</li>
+      <li><strong>Veranico</strong>: maior sequência de dias consecutivos com chuva
+          &lt; 1 mm no período (mês ou janela out–mar). Estiagens dentro da estação
+          chuvosa são um dos principais mecanismos de perda de produtividade.</li>
+      <li><strong>Dias de calor extremo</strong>: dias com máxima &gt; 34 °C — limiar
+          usual de estresse térmico na floração de culturas como soja e milho.</li>
+      <li><strong>Início das chuvas (onset)</strong>: primeiro dia, a partir de 1º de
+          setembro, com ≥ 20 mm acumulados em 3 dias e sem estiagem &gt; 10 dias nos 20
+          dias seguintes. Sem onset até 31 de janeiro = ausente naquele ano. O atraso do
+          onset atrasa o plantio.</li>
+      <li><strong>Chuva da safra</strong>: total de outubro a março. No mapa, o valor em
+          anos de cada fase é comparado à média 1981–2025 do próprio município.</li>
+    </ul>
+
+    <h2>4. Produtividade agrícola (PAM)</h2>
+    <p><strong>Rendimento</strong> = produção (t) × 1000 ÷ área colhida (ha), em kg/ha.</p>
+    <p>Rendimento cresce com tecnologia ao longo das décadas; para isolar o efeito do
+       clima usamos a <strong>anomalia em relação à tendência local</strong>: ajustamos
+       uma curva suave (loess, span 0,5) à série 1974–2024 de cada município × cultura e
+       medimos o desvio percentual de cada ano em relação a ela. Exigimos ao menos
+       15 anos válidos; para séries mais curtas usamos a variação percentual
+       ano-a-ano (limitada a ±200%).</p>
+    <p class="nota">Culturas: soja, milho, arroz, feijão, trigo e cana-de-açúcar.
+       Abacaxi foi excluído porque a PAM o reporta em mil frutos (rendimento em kg/ha
+       não é comparável); o agregado "Outras" foi excluído por misturar culturas
+       heterogêneas.</p>
+
+    <h2>5. O que o mapa mostra</h2>
+    <p>Cada métrica do painel esquerdo é pré-calculada por município: média do indicador
+       nos anos de cada fase (El Niño / La Niña / Neutro), comparada quando faz sentido à
+       média histórica de todos os anos. A escala de cores é divergente e simétrica
+       (percentil 95 dos valores absolutos), com marrom = mais seco/pior e
+       verde-azulado = mais úmido/melhor.</p>
+
+    <h2>6. Limitações</h2>
+    <ul>
+      <li>Clima interpolado no centroide municipal — municípios muito extensos podem ter
+          variação interna relevante.</li>
+      <li>Fernando de Noronha não tem série climática na base; 5 municípios criados
+          após 2013 não têm polígono na malha usada.</li>
+      <li>A PAM registra ano civil; a convenção de ano-safra usada aqui é uma
+          aproximação — para o milho segunda safra (colhido no meio do ano) a
+          correspondência é menos direta.</li>
+      <li>Amostras pequenas: mesmo com 45 safras, cada fase tem ~10–18 anos; um único
+          ano atípico pesa. Os grupos por fase descrevem tendência histórica, não
+          garantia para o próximo evento.</li>
+      <li>Anomalia por fase ENSO é associação, não atribuição causal: outros modos
+          climáticos (ex.: Dipolo do Atlântico/Índico) modulam os impactos.</li>
+    </ul>
+
+    <h2>7. Reprodutibilidade</h2>
+    <p>Todo o processamento é feito em scripts R versionados no repositório do projeto
+       (<code>scripts/01_oni.R</code> a <code>06_mapa_mensal.R</code>), partindo dos dados
+       brutos citados na seção 1. O site é 100% estático: os mesmos arquivos CSV exibidos
+       nos gráficos são os oferecidos no botão de download de cada município.</p>
+
+    <p class="volta"><a href="./index.html">← Voltar ao mapa</a></p>
+  </main>
+</body>
+</html>

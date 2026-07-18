@@ -1,0 +1,19 @@
+# dados brutos e intermediarios — nao versionar (anchored: site/data e versionado)
+/DATA/
+/Xavier_municipio/
+
+# geodados grandes (pmtiles usados pelo site ficam em site/geo/)
+GEO/*.gpkg
+GEO/municipios.geojson
+GEO/ocean_mask.geojson
+
+# R
+.Rproj.user/
+.Rhistory
+.RData
+*.Rproj
+
+# misc
+Thumbs.db
+desktop.ini
+node_modules/

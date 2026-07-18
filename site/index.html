@@ -1,0 +1,81 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El Niño e a Agricultura</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/pmtiles@3.2.0/dist/pmtiles.js"></script>
+</head>
+<body>
+  <header id="app-header">
+    <h1>El Niño e a Agricultura</h1>
+    <p id="hover-label">Passe o mouse sobre um município; clique para fixar e ver os gráficos</p>
+    <a id="link-metodologia" href="./metodologia.html">Metodologia</a>
+  </header>
+  <div id="app-layout">
+    <div id="map-panel">
+      <aside id="sidebar">
+        <button id="sb-toggle" title="Recolher painel">«</button>
+        <div id="sb-content">
+          <h2>Cor do mapa</h2>
+          <div id="sb-metricas"></div>
+          <h2>Explorar indicadores
+            <span class="info-i" tabindex="0">i<span class="info-tip">Escolha qualquer
+              indicador climático e mês, e veja como ele se comporta nos anos de cada
+              fase do El Niño/La Niña, município a município.</span></span>
+          </h2>
+          <div id="sb-explorador">
+            <label>Indicador
+              <select id="exp-ind"></select>
+            </label>
+            <p id="exp-desc"></p>
+            <label>Mês
+              <select id="exp-mes"></select>
+            </label>
+            <label>Fase
+              <select id="exp-fase"></select>
+            </label>
+            <button id="exp-aplicar">Aplicar ao mapa</button>
+          </div>
+        </div>
+      </aside>
+      <div id="choro-legend"></div>
+    </div>
+    <div id="right-panel">
+      <div id="muni-header">
+        <div id="muni-title">Nenhum município selecionado</div>
+        <div id="muni-actions" hidden>
+          <a id="dl-mensal" class="dl-btn" download>&#8681; CSV mensal</a>
+          <a id="dl-anual" class="dl-btn" download>&#8681; CSV anual (PAM)</a>
+        </div>
+      </div>
+      <div id="placeholder-panel">
+        <p>Clique em um município no mapa para ver clima e produtividade
+           agrícola em anos de <span class="fase-en">El Niño</span>,
+           <span class="fase-ln">La Niña</span> e
+           <span class="fase-n">neutros</span>.</p>
+      </div>
+      <div id="charts" hidden>
+        <section class="chart-panel" id="chart-clim"></section>
+        <section class="chart-panel" id="chart-spei"></section>
+        <div id="pam-controls" class="chart-panel">
+          <label for="sel-cultura">Cultura</label>
+          <select id="sel-cultura"></select>
+        </div>
+        <section class="chart-panel" id="chart-anom"></section>
+        <section class="chart-panel" id="chart-rend"></section>
+        <p id="pam-aviso" hidden>Sem dados da PAM para este município.</p>
+      </div>
+      <footer id="app-footer">
+        Clima: Xavier v3.2.4 (1980–2025) · Produção: IBGE/PAM (1974–2024) ·
+        ENSO: ONI/NOAA · Fase atribuída à safra out–mar
+      </footer>
+    </div>
+  </div>
+  <script src="./js/main.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,363 @@
+/* ============================================================ */
+/* Tema escuro (escolhido pelo usuário entre 3 protótipos)       */
+/* ============================================================ */
+
+:root {
+  --font-body: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-display: var(--font-body);
+
+  --bg-page: #0f1216;
+  --surface: #1a1f26;
+  --surface-2: #151a20;
+  --overlay: rgba(22, 27, 34, 0.94);
+  --border: rgba(255, 255, 255, 0.10);
+  --shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+
+  --accent: #3d7dc4;
+  --accent-hover: #5595d8;
+  --on-accent: #ffffff;
+
+  --text: #e8ecf1;
+  --text-2: #aab4bf;
+  --muted: #7d8791;
+  --grid: #2a323b;
+  --axis: #3a444f;
+
+  --tooltip-bg: rgba(30, 36, 44, 0.97);
+  --tooltip-text: #e8ecf1;
+  --tip-bg: #2f4c6b;
+  --tip-text: #e8ecf1;
+
+  --fase-en: #e66767;
+  --fase-ln: #3987e5;
+  --fase-n: #6f6e66;
+
+  --sel-bg: #232a33;
+  --sel-border: #3a444f;
+}
+
+/* === Reset & base ======================================================= */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-page);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* === Header ============================================================= */
+#app-header {
+  flex-shrink: 0;
+  padding: 10px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+}
+#app-header h1 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--accent);
+  white-space: nowrap;
+}
+#hover-label { font-size: 14px; color: var(--text-2); font-style: italic; }
+#hover-label.active { font-style: normal; color: var(--accent); font-weight: bold; }
+
+#link-metodologia {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--accent);
+  text-decoration: underline;
+  white-space: nowrap;
+  align-self: center;
+}
+
+/* === Layout 60/40 ======================================================= */
+#app-layout { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+#map-panel { flex: 0 0 60%; position: relative; overflow: hidden; background: var(--bg-page); }
+#right-panel {
+  flex: 0 0 40%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background: var(--bg-page);
+  padding: 10px 14px 0;
+  gap: 10px;
+}
+
+/* === Sidebar de controles do mapa ====================================== */
+#sidebar {
+  position: absolute;
+  top: 10px; left: 10px; bottom: 90px;
+  z-index: 11;
+  width: 280px;
+  background: var(--overlay);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  display: flex;
+  transition: width 0.15s ease;
+}
+#sidebar.collapsed { width: 28px; bottom: auto; }
+#sidebar.collapsed #sb-content { display: none; }
+#sb-toggle {
+  flex: 0 0 28px;
+  border: none;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 7px 0 0 7px;
+}
+#sidebar.collapsed #sb-toggle { border-radius: 7px; }
+#sb-content { flex: 1; overflow-y: auto; padding: 10px 12px; min-width: 0; }
+#sb-content h2 {
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--accent);
+  margin: 4px 0 6px;
+  display: flex; align-items: center; gap: 6px;
+}
+#sb-metricas + h2 { margin-top: 14px; }
+.sb-row {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px;
+  padding: 3px 0;
+  cursor: pointer;
+  color: var(--text);
+}
+.sb-row input { flex-shrink: 0; cursor: pointer; accent-color: var(--accent); }
+.sb-label { flex: 1; line-height: 1.3; }
+#sb-explorador { display: flex; flex-direction: column; gap: 8px; }
+#sb-explorador label {
+  display: flex; flex-direction: column; gap: 3px;
+  font-size: 12px; font-weight: bold; color: var(--accent);
+}
+#sb-explorador select { max-width: 100%; }
+#exp-desc { font-size: 11px; color: var(--text-2); line-height: 1.4; min-height: 28px; }
+#exp-aplicar {
+  padding: 6px 10px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border: none; border-radius: 5px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+#exp-aplicar:hover { background: var(--accent-hover); }
+
+select {
+  font-size: 12px;
+  padding: 3px 6px;
+  border: 1px solid var(--sel-border);
+  border-radius: 4px;
+  color: var(--text);
+  background: var(--sel-bg);
+  max-width: 320px;
+  cursor: pointer;
+}
+
+/* === Tooltip "i" ======================================================== */
+.info-i {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--axis);
+  color: var(--surface);
+  font-size: 10px;
+  font-style: italic;
+  font-weight: bold;
+  font-family: Georgia, serif;
+  cursor: help;
+  position: relative;
+}
+.info-i:hover, .info-i:focus { background: var(--accent); color: var(--on-accent); }
+.info-tip {
+  display: none;
+  position: absolute;
+  left: 20px; top: -6px;
+  z-index: 50;
+  width: 230px;
+  background: var(--tip-bg);
+  color: var(--tip-text);
+  font-size: 11.5px;
+  font-style: normal;
+  font-weight: normal;
+  font-family: var(--font-body);
+  line-height: 1.45;
+  padding: 8px 10px;
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+}
+.info-i:hover .info-tip, .info-i:focus .info-tip { display: block; }
+
+/* === Legenda choropleth ================================================= */
+#choro-legend {
+  position: absolute;
+  bottom: 22px; left: 10px;
+  background: var(--overlay);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: var(--shadow);
+  max-width: 250px;
+}
+.legend-title { font-size: 11px; font-weight: bold; color: var(--accent); margin-bottom: 4px; }
+.legend-tick { font-size: 10px; fill: var(--text-2); }
+
+/* === Painel direito ===================================================== */
+#muni-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; flex-wrap: wrap;
+}
+#muni-title {
+  font-family: var(--font-display);
+  font-size: 15px; font-weight: bold; color: var(--accent);
+}
+#muni-actions { display: flex; gap: 8px; }
+.dl-btn {
+  font-size: 12px;
+  padding: 4px 10px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: 4px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.dl-btn:hover { background: var(--accent-hover); }
+
+#placeholder-panel {
+  padding: 30px 20px;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.fase-en { color: var(--fase-en); font-weight: bold; }
+.fase-ln { color: var(--fase-ln); font-weight: bold; }
+.fase-n  { color: var(--fase-n); font-weight: bold; }
+
+#charts { display: flex; flex-direction: column; gap: 10px; }
+
+.chart-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  position: relative;
+}
+.chart-panel h3 {
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--accent);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+#pam-controls { display: flex; align-items: center; gap: 8px; padding: 8px 12px; }
+#pam-controls label { font-size: 13px; font-weight: bold; color: var(--accent); }
+#pam-aviso { font-size: 13px; color: var(--text-2); font-style: italic; padding: 4px 2px; }
+
+#app-footer {
+  font-size: 11px;
+  color: var(--muted);
+  padding: 8px 2px 12px;
+  line-height: 1.5;
+}
+
+/* === Elementos D3 ======================================================= */
+.axis text { font-size: 10px; fill: var(--muted); }
+.axis path, .axis line { stroke: var(--axis); }
+.grid { stroke: var(--grid); stroke-width: 1; }
+.zeroline { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 3; }
+.hairline { stroke: var(--muted); stroke-width: 1; pointer-events: none; }
+.direct-label { font-size: 11px; font-weight: 600; }
+.placeholder-msg { font-size: 12px; fill: var(--muted); text-anchor: middle; font-style: italic; }
+
+.chart-legend {
+  display: flex; flex-wrap: wrap; gap: 4px 14px;
+  font-size: 11px; color: var(--text-2);
+  margin-top: 4px; align-items: center;
+}
+.legend-item { display: inline-flex; align-items: center; gap: 5px; }
+.legend-swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.legend-note { color: var(--muted); font-style: italic; }
+
+.chart-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--tooltip-bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 6px 9px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--tooltip-text);
+  box-shadow: var(--shadow);
+  z-index: 20;
+  transition: opacity 0.1s;
+  max-width: 220px;
+}
+
+/* === MapLibre =========================================================== */
+#map-panel .maplibregl-canvas { outline: none; }
+.maplibregl-popup-content {
+  padding: 6px 10px;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  line-height: 1.5;
+  border-radius: 5px;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-text);
+}
+.maplibregl-popup-content strong { color: var(--accent); }
+.maplibregl-popup-content span { color: var(--text-2); font-size: 11px; }
+.maplibregl-popup-tip { display: none; }
+
+.maplibregl-ctrl.maplibregl-ctrl-group { background: var(--surface); }
+.maplibregl-ctrl button .maplibregl-ctrl-icon { filter: invert(0.85); }
+.maplibregl-ctrl-attrib { background: rgba(20, 25, 32, 0.7); }
+.maplibregl-ctrl-attrib, .maplibregl-ctrl-attrib a { color: var(--text-2); }
+
+/* === Página de metodologia ============================================= */
+#doc {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+  background: var(--surface);
+  line-height: 1.65;
+  font-size: 14.5px;
+}
+#doc h1 { font-family: var(--font-display); font-size: 22px; color: var(--accent); margin-bottom: 4px; }
+#doc h2 { font-family: var(--font-display); font-size: 17px; color: var(--accent); margin: 26px 0 8px; }
+#doc h3 { font-size: 14.5px; color: var(--accent); margin: 16px 0 6px; }
+#doc p, #doc li { color: var(--text); margin-bottom: 8px; }
+#doc ul, #doc ol { padding-left: 22px; }
+#doc table { border-collapse: collapse; margin: 10px 0; font-size: 13.5px; }
+#doc th, #doc td { border: 1px solid var(--grid); padding: 5px 10px; text-align: left; }
+#doc th { background: var(--surface-2); color: var(--accent); }
+#doc code { background: var(--surface-2); padding: 1px 5px; border-radius: 3px; font-size: 13px; }
+#doc .volta { font-size: 13px; }
+#doc a { color: var(--accent); }
+#doc .nota {
+  font-size: 13px; color: var(--text-2); background: var(--surface-2);
+  border-left: 3px solid var(--axis); padding: 8px 12px; border-radius: 4px;
+}
+
+/* === Mobile: empilha ==================================================== */
+@media (max-width: 800px) {
+  body { overflow: auto; height: auto; }
+  #app-layout { flex-direction: column; }
+  #map-panel { flex: 0 0 55vh; min-height: 380px; }
+  #right-panel { flex: 1 1 auto; overflow: visible; }
+}
