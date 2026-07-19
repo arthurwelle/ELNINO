@@ -20,3 +20,7 @@ node_modules/
 
 # config local do Claude Code
 /.claude/
+
+# geodados fonte (site usa copia em site/geo/)
+/GEO/
+/glimpse_*.txt
