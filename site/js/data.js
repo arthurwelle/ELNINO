@@ -1,9 +1,10 @@
 // Carregamento de dados: resumo nacional no boot, 2 CSVs por município no clique.
 
 const cacheMuni = new Map();
+const cacheEstado = new Map();
 
 export let resumo = new Map();      // code_muni -> linha do resumo.csv
-export let oniSafras = new Map();   // ano_safra -> {fase, oni_pico, forte}
+export let oniSafras = new Map();   // ano_safra -> {fase, roni_pico, oni_pico, forte}
 
 export async function loadBoot() {
   const [res, oni] = await Promise.all([
@@ -19,8 +20,29 @@ export async function loadBoot() {
     resumo.set(String(r.code_muni), r);
   }
   for (const r of oni) {
-    oniSafras.set(+r.ano_safra, { fase: r.fase, oni_pico: +r.oni_pico, forte: +r.forte === 1 });
+    oniSafras.set(+r.ano_safra, {
+      fase: r.fase,
+      roni_pico: r.roni_pico === '' ? null : +r.roni_pico,
+      oni_pico: r.oni_pico === '' ? null : +r.oni_pico,
+      forte: +r.forte === 1,
+    });
   }
+}
+
+// Séries agregadas por UF (para comparar município com estado). null se não existir.
+export async function loadEstado(uf) {
+  if (cacheEstado.has(uf)) return cacheEstado.get(uf);
+  const rows = await d3.csv(`./data/estado/${uf}.csv`, (d) => ({
+    cultura: d.cultura,
+    ano: +d.ano,
+    rend_kg_ha: d.rend_kg_ha === '' ? null : +d.rend_kg_ha,
+    anom_rend_pct: d.anom_rend_pct === '' ? null : +d.anom_rend_pct,
+    fase: d.fase,
+    forte: +d.forte === 1,
+    roni_pico: d.roni_pico === '' ? null : +d.roni_pico,
+  })).catch(() => null);
+  cacheEstado.set(uf, rows);
+  return rows;
 }
 
 // Retorna {mensal, anual} — anual = null quando município não tem PAM (404).
@@ -38,6 +60,8 @@ export async function loadMunicipio(geocod) {
     spi12: num(d.spi12), spei12: num(d.spei12),
     tmax_med: num(d.tmax_med),
     veranico_max: num(d.veranico_max),
+    soma_termica: num(d.soma_termica),
+    srad_mj: num(d.srad_mj),
   }));
   const anualP = d3.csv(`./data/anual/${geocod}.csv`, (d) => ({
     ano: +d.ano,

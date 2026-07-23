@@ -13,31 +13,36 @@ mapa_cultura <- c(soja = "soja", milho = "milho", arroz = "arroz",
 pam[, cultura := mapa_cultura[grupo_produto]]
 pam <- pam[!is.na(cultura)]
 
+# --- milho 1a/2a safra (SIDRA tabela 839, formato longo) -------------------
+DIR_MILHO <- file.path(DIR_DATA, "pam", "milho.csv")
+if (file.exists(DIR_MILHO)) {
+  m <- fread(DIR_MILHO, skip = 1, encoding = "UTF-8",
+             colClasses = "character", na.strings = c("-", "", "..", "..."))
+  setnames(m, 1:5, c("id_municipio", "ano", "variavel", "produto", "valor"))
+  m[, cultura := fifelse(grepl("1", produto), "milho1",
+                  fifelse(grepl("2", produto), "milho2", NA_character_))]
+  m <- m[!is.na(cultura) & !is.na(valor)]
+  m[, `:=`(ano = as.integer(ano), valor = as.numeric(valor))]
+  m[, campo := fcase(
+    grepl("plantada", variavel), "area_plantada",
+    grepl("colhida",  variavel), "area_colhida",
+    grepl("produzida", variavel), "quantidade_produzida")]
+  m <- m[!is.na(campo)]
+  milho <- dcast(m, id_municipio + ano + cultura ~ campo, value.var = "valor")
+  milho[, valor_producao := NA_real_]
+  pam <- rbind(pam[, .(id_municipio, ano, cultura, area_plantada, area_colhida,
+                       quantidade_produzida, valor_producao)],
+               milho[, .(id_municipio, ano, cultura, area_plantada, area_colhida,
+                         quantidade_produzida, valor_producao)])
+  message("milho 1a/2a safra integrado: ", nrow(milho), " linhas")
+}
+
 pam[, rend_kg_ha := fifelse(!is.na(area_colhida) & area_colhida > 0,
                             1000 * quantidade_produzida / area_colhida, NA_real_)]
 
 setorder(pam, id_municipio, cultura, ano)
 
-calc_metrica_rendimento <- function(ano, rend) {
-  # retorna list(anom_rend_pct, delta_rend_pct) alinhados a 'ano'
-  delta <- 100 * (rend / shift(rend) - 1)
-  delta <- pmax(pmin(delta, DELTA_CAP), -DELTA_CAP)
-  ok <- which(!is.na(rend) & rend > 0)
-  anom <- rep(NA_real_, length(rend))
-  if (length(ok) >= LOESS_MIN_ANOS) {
-    fit <- tryCatch(
-      loess(rend[ok] ~ ano[ok], span = LOESS_SPAN, degree = 2,
-            family = "symmetric"),
-      error = function(e) NULL)
-    if (!is.null(fit)) {
-      tend <- predict(fit)
-      tend[tend <= 0] <- NA_real_
-      anom[ok] <- 100 * (rend[ok] - tend) / tend
-    }
-  }
-  list(anom = round(anom, 1), delta = round(delta, 1))
-}
-
+# calc_metrica_rendimento agora vem de 00_config.R (compartilhado com 07_estado.R)
 pam[, c("anom_rend_pct", "delta_rend_pct") :=
       calc_metrica_rendimento(ano, rend_kg_ha), by = .(id_municipio, cultura)]
 

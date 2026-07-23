@@ -47,15 +47,35 @@ gj <- fromJSON(file.path(DIR_GEO, "municipios.geojson"), simplifyVector = TRUE)
 props <- setDT(gj$features$properties)
 props <- props[, .(geocod = as.character(code_muni), nome = name_muni, uf = abbrev_state)]
 
-# anomalia media de rendimento em safras EN (soja e milho)
+# anomalia media de rendimento em safras EN
 pam <- setDT(read_parquet(file.path(DIR_DERIVED, "pam_anual.parquet")))
-res_pam <- dcast(
-  pam[fase == "EN" & cultura %in% c("soja", "milho") & !is.na(anom_rend_pct),
-      .(v = if (.N >= 2L) round(mean(anom_rend_pct), 1) else NA_real_),
-      by = .(geocod, cultura)],
-  geocod ~ cultura, value.var = "v")
-setnames(res_pam, old = c("soja", "milho"),
-         new = c("anom_rend_en_soja", "anom_rend_en_milho"), skip_absent = TRUE)
+pam[, uf2 := substr(geocod, 1, 2)]
+
+# soja: direto
+soja <- pam[fase == "EN" & cultura == "soja" & !is.na(anom_rend_pct),
+            .(anom_rend_en_soja = if (.N >= 2L) round(mean(anom_rend_pct), 1) else NA_real_),
+            by = geocod]
+
+# milho no mapa: safra dominante da UF (milho_safra_uf.csv); fallback milho total
+milho_uf_path <- file.path(DIR_SITE_DATA, "milho_safra_uf.csv")
+if (file.exists(milho_uf_path)) {
+  dom <- fread(milho_uf_path)  # uf (sigla), safra_dominante
+  uf_cod <- c("11"="RO","12"="AC","13"="AM","14"="RR","15"="PA","16"="AP","17"="TO",
+              "21"="MA","22"="PI","23"="CE","24"="RN","25"="PB","26"="PE","27"="AL",
+              "28"="SE","29"="BA","31"="MG","32"="ES","33"="RJ","35"="SP","41"="PR",
+              "42"="SC","43"="RS","50"="MS","51"="MT","52"="GO","53"="DF")
+  pam[, uf := uf_cod[uf2]]
+  pam <- merge(pam, dom, by = "uf", all.x = TRUE)
+  pam[, cult_mapa := fifelse(safra_dominante == 2L, "milho2", "milho1")]
+  milho <- pam[fase == "EN" & cultura == cult_mapa & !is.na(anom_rend_pct),
+               .(anom_rend_en_milho = if (.N >= 2L) round(mean(anom_rend_pct), 1) else NA_real_),
+               by = geocod]
+} else {
+  milho <- pam[fase == "EN" & cultura == "milho" & !is.na(anom_rend_pct),
+               .(anom_rend_en_milho = if (.N >= 2L) round(mean(anom_rend_pct), 1) else NA_real_),
+               by = geocod]
+}
+res_pam <- merge(soja, milho, by = "geocod", all = TRUE)
 
 resumo <- merge(props, res_clima, by = "geocod", all.y = TRUE)
 resumo <- merge(resumo, res_pam, by = "geocod", all.x = TRUE)

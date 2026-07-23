@@ -1,10 +1,10 @@
 // Orquestração: boot, seleção de município, seletores, download.
 
 import { CULTURAS, debounce } from './config.js';
-import { loadBoot, loadMunicipio } from './data.js';
+import { loadBoot, loadMunicipio, loadEstado } from './data.js';
 import { map, initInteracao } from './map.js';
 import { initSidebar } from './sidebar.js';
-import { chartClimatologia, chartSpei, chartAnomalia, chartRendimento } from './charts.js';
+import { chartClimatologia, chartAcumulados, chartAnomalia, chartRendimento } from './charts.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -42,7 +42,8 @@ async function onSelect(geocod, nome, uf) {
     $('charts').hidden = true;
     return;
   }
-  atual = { geocod, nome, uf, ...dados };
+  const estado = await loadEstado(uf);
+  atual = { geocod, nome, uf, estado, ...dados };
 
   $('muni-actions').hidden = false;
   $('dl-mensal').href = `./data/mensal/${geocod}.csv`;
@@ -55,22 +56,24 @@ async function onSelect(geocod, nome, uf) {
   }
 
   chartClimatologia('#chart-clim', dados.mensal);
-  chartSpei('#chart-spei', dados.mensal);
+  chartAcumulados('#chart-acum', dados.mensal);
 
   $('pam-aviso').hidden = temPam;
   $('pam-controls').style.display = temPam ? '' : 'none';
   $('chart-anom').style.display = temPam ? '' : 'none';
   $('chart-rend').style.display = temPam ? '' : 'none';
   if (temPam) {
-    selCultura.value = culturaDefault(dados.anual);
+    // mantém a cultura escolhida se existir neste município; senão, default
+    const disp = new Set(dados.anual.map((r) => r.cultura));
+    if (!disp.has(selCultura.value)) selCultura.value = culturaDefault(dados.anual);
     renderPam();
   }
 }
 
 function renderPam() {
   if (!atual?.anual) return;
-  chartAnomalia('#chart-anom', atual.anual, selCultura.value);
-  chartRendimento('#chart-rend', atual.anual, selCultura.value);
+  chartAnomalia('#chart-anom', atual.anual, selCultura.value, atual.estado);
+  chartRendimento('#chart-rend', atual.anual, selCultura.value, atual.estado);
 }
 
 function onDeselect() {
@@ -86,7 +89,7 @@ function onDeselect() {
 function rerenderCharts() {
   if (!atual) return;
   chartClimatologia('#chart-clim', atual.mensal);
-  chartSpei('#chart-spei', atual.mensal);
+  chartAcumulados('#chart-acum', atual.mensal);
   renderPam();
 }
 window.addEventListener('resize', debounce(rerenderCharts, 200));
@@ -94,8 +97,7 @@ window.addEventListener('resize', debounce(rerenderCharts, 200));
 // boot
 (async () => {
   await loadBoot();
-  if (map.loaded()) initSidebar();
-  else map.on('load', () => initSidebar());
+  initSidebar();  // monta a UI da sidebar já; o choropleth pinta no load do mapa
   initInteracao(onSelect, onDeselect);
 
   // deep-link: ?muni=<geocod> abre o município direto (link compartilhável)

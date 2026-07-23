@@ -1,3 +1,3 @@
 ano,cultura,area_plantada_ha,area_colhida_ha,producao_t,valor_mil_reais,rend_kg_ha,anom_rend_pct,delta_rend_pct,fase,forte,chuva_out_mar_mm,veranico_max_out_mar,dias_tmax34_out_mar
-1991,feijao,20,16,10,6e-04,625,,,N,0,,,
-1991,milho,15,15,15,3e-04,1000,,,N,0,,,
+1991,feijao,20,16,10,6e-04,625,,,EN,0,,,
+1991,milho,15,15,15,3e-04,1000,,,EN,0,,,

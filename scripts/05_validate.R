@@ -12,12 +12,19 @@ message("mensal/: ", length(mens), " arquivos (esperado ", length(geocods_dispon
 if (length(mens) != length(geocods_disponiveis())) falha("contagem mensal difere dos geocods")
 
 amostra <- sample(mens, min(200L, length(mens)))
+cols_novas <- c("soma_termica", "srad_mj")
 for (f in amostra) {
   dt <- fread(f)
   if (nrow(dt) != 552L) falha(basename(f), ": ", nrow(dt), " linhas (esperado 552)")
   if (any(vapply(dt, function(c) any(is.infinite(c)), logical(1)))) falha(basename(f), ": Inf presente")
+  if (!all(cols_novas %in% names(dt))) falha(basename(f), ": faltam colunas soma_termica/srad_mj")
 }
-message("amostra de ", length(amostra), " mensais: linhas e Inf ok")
+message("amostra de ", length(amostra), " mensais: linhas, Inf e colunas ok")
+
+# estado/ (uma UF por arquivo)
+est <- list.files(file.path(DIR_SITE_DATA, "estado"), pattern = "\\.csv$")
+message("estado/: ", length(est), " UFs")
+if (length(est) < 20L) falha("estado/ com menos de 20 UFs")
 
 # 2. cobertura do join resumo x geojson
 resumo <- fread(file.path(DIR_SITE_DATA, "resumo.csv"), colClasses = list(character = "code_muni"))

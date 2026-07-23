@@ -2,7 +2,7 @@
 
 import { METRICAS, INDICADORES, FASES, FASE, MESES_LONGOS } from './config.js';
 import { resumo } from './data.js';
-import { updateChoropleth } from './map.js';
+import { map, updateChoropleth } from './map.js';
 
 const cacheMapa = new Map(); // "<ind>_<mes>" -> Map<code, {en,ln,n,med}>
 
@@ -135,6 +135,8 @@ export function initSidebar() {
     btn.title = fechado ? 'Abrir painel' : 'Recolher painel';
   });
 
-  // choropleth inicial
-  aplicarMetrica(METRICAS.find((m) => m.default));
+  // choropleth inicial: pinta quando o mapa estiver pronto (UI já montada acima)
+  const pintaInicial = () => aplicarMetrica(METRICAS.find((m) => m.default));
+  if (map.isStyleLoaded()) pintaInicial();
+  else map.on('load', pintaInicial);
 }

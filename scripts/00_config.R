@@ -25,6 +25,7 @@ for (d in c(DIR_DERIVED, DIR_SITE_MENSAL, DIR_SITE_ANUAL)) {
 LIMIAR_SECO   <- 1    # mm: dia com RAIN < 1 conta como seco (veranico)
 LIMIAR_TMAX   <- 34   # graus C: dia de estresse termico
 LIMIAR_CHUVA10 <- 10  # mm: dia de chuva significativa
+GDD_BASE      <- 10   # graus C: base da soma termica (GDD), clip em 0
 
 # onset das chuvas: 1o dia a partir de 1/set com >= ONSET_ACC mm acumulados em
 # ONSET_JANELA dias, sem sequencia seca > ONSET_SECA_MAX dias nos ONSET_CHECK
@@ -56,6 +57,26 @@ geocods_disponiveis <- function() {
 # fwrite padrao do projeto: UTF-8, sem BOM, NA como celula vazia
 fwrite_site <- function(dt, path) {
   fwrite(dt, path, na = "", bom = FALSE, quote = FALSE)
+}
+
+# anomalia % de rendimento vs tendencia loess (>= LOESS_MIN_ANOS anos validos);
+# fallback: delta % ano-a-ano (cap +-DELTA_CAP). Usado por 03_pam.R e 07_estado.R.
+calc_metrica_rendimento <- function(ano, rend) {
+  delta <- 100 * (rend / shift(rend) - 1)
+  delta <- pmax(pmin(delta, DELTA_CAP), -DELTA_CAP)
+  ok <- which(!is.na(rend) & rend > 0)
+  anom <- rep(NA_real_, length(rend))
+  if (length(ok) >= LOESS_MIN_ANOS) {
+    fit <- tryCatch(
+      loess(rend[ok] ~ ano[ok], span = LOESS_SPAN, degree = 2, family = "symmetric"),
+      error = function(e) NULL)
+    if (!is.null(fit)) {
+      tend <- predict(fit)
+      tend[tend <= 0] <- NA_real_
+      anom[ok] <- 100 * (rend[ok] - tend) / tend
+    }
+  }
+  list(anom = round(anom, 1), delta = round(delta, 1))
 }
 
 # maior sequencia de TRUE consecutivos

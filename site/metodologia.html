@@ -5,7 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Metodologia — El Niño e a Agricultura Brasileira</title>
   <link rel="stylesheet" href="./css/style.css">
-  <style>body { overflow: auto; height: auto; }</style>
+  <style>
+    body { overflow: auto; height: auto; }
+    #milho-map { max-width: 460px; margin: 10px auto; }
+    #milho-map img { width: 100%; display: block; }
+    .milho-leg { display: flex; gap: 18px; font-size: 13px; margin: 6px 0; }
+    .milho-leg span { display: inline-flex; align-items: center; gap: 6px; }
+    .milho-leg i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+  </style>
 </head>
 <body>
   <header id="app-header">
@@ -32,27 +39,38 @@
       <tr><td>Produção agrícola municipal (área, produção, valor)</td>
           <td>IBGE — Pesquisa Agrícola Municipal (PAM)</td>
           <td>1974–2024</td></tr>
-      <tr><td>Índice ONI (Oceanic Niño Index)</td>
+      <tr><td>Índice RONI (Relative Oceanic Niño Index) — classificação ENSO</td>
+          <td>NOAA / Climate Prediction Center</td>
+          <td>1950–presente</td></tr>
+      <tr><td>Índice ONI (Oceanic Niño Index) — comparação</td>
           <td>NOAA / Climate Prediction Center (<code>oni.ascii.txt</code>)</td>
           <td>1950–presente</td></tr>
     </table>
 
     <h2>2. Classificação dos anos em El Niño, La Niña e Neutro</h2>
-    <p>Usamos o <strong>ONI</strong>, o índice oficial da NOAA: anomalia da temperatura da
-       superfície do mar na região Niño 3.4 do Pacífico, em médias móveis de 3 meses.
-       Trimestre com ONI ≥ +0,5 °C conta como El Niño; ≤ −0,5 °C como La Niña; entre os
-       dois, Neutro.</p>
+    <p>Usamos o <strong>RONI</strong> (Relative Oceanic Niño Index), o índice que a NOAA
+       adotou em 2026 para monitorar o ENSO. Como o ONI tradicional, ele mede a anomalia
+       de temperatura da superfície do mar na região Niño 3.4 do Pacífico em médias
+       móveis de 3 meses — mas <strong>desconta o aquecimento médio de todo o cinturão
+       tropical</strong>. Isso corrige um problema do ONI: com o aquecimento global, a
+       base de 30 anos ficou defasada e passou a classificar como El Niño episódios
+       relativamente fracos. O RONI ≥ +0,5 °C conta como El Niño; ≤ −0,5 °C como La Niña;
+       entre os dois, Neutro.</p>
+    <p class="nota">Na prática, vários El Niños recentes enfraquecem sob o RONI: o evento
+       de 2023/24, por exemplo, tinha pico ONI de +2,1 °C (muito forte) mas RONI de
+       +1,5 °C. Mantemos o ONI no site (tooltips e este texto) apenas para comparação; a
+       classificação das fases usa o RONI.</p>
     <h3>Convenção de ano-safra</h3>
     <p>A safra de verão brasileira é plantada de setembro a dezembro e colhida no ano
        seguinte — e o pico do El Niño ocorre justamente na virada do ano. Por isso cada
        <strong>ano-safra t</strong> (safra colhida no ano t, que é como a PAM registra)
-       recebe a fase ONI <strong>predominante entre outubro de t−1 e março de t</strong> —
+       recebe a fase RONI <strong>predominante entre outubro de t−1 e março de t</strong> —
        a janela de plantio e desenvolvimento da lavoura. Em caso de empate, decide o
-       sinal do ONI de pico.</p>
+       sinal do RONI de pico.</p>
     <h3>Eventos fortes</h3>
-    <p>Safra com |ONI de pico| ≥ 1,5 °C é marcada como evento <strong>forte</strong>
-       (El Niño: 1983, 1992, 1998, 2010, 2016, 2024; La Niña: 1989, 1999, 2000, 2008,
-       2011, entre outros). Nos gráficos, esses anos ganham destaque, pois os impactos
+    <p>Safra com |RONI de pico| ≥ 1,5 °C é marcada como evento <strong>forte</strong>
+       (El Niño: 1983, 1992, 1998, 2016; La Niña: 1989, 1999, 2000, 2008, 2011, 2021,
+       entre outros). Nos gráficos, esses anos ganham destaque, pois os impactos
        agrícolas são tipicamente maiores.</p>
 
     <h2>3. Indicadores climáticos</h2>
@@ -76,7 +94,17 @@
           onset atrasa o plantio.</li>
       <li><strong>Chuva da safra</strong>: total de outubro a março. No mapa, o valor em
           anos de cada fase é comparado à média 1981–2025 do próprio município.</li>
+      <li><strong>Soma térmica</strong> (graus-dia, base 10 °C): soma, ao longo do
+          período, de (temperatura média diária − 10 °C), contando zero nos dias abaixo
+          de 10 °C. Mede o acúmulo de calor disponível para o desenvolvimento das
+          culturas.</li>
+      <li><strong>Radiação acumulada</strong>: soma da radiação solar global (MJ/m²) no
+          período — energia disponível para a fotossíntese.</li>
     </ul>
+    <p>O gráfico de <strong>acumulados de 4 meses</strong> soma chuva, soma térmica e
+       radiação numa janela de quatro meses a partir do mês escolhido (a janela pode
+       atravessar a virada do ano e é atribuída à safra correspondente), mostrando um
+       ponto por ano colorido pela fase ENSO daquela safra.</p>
 
     <h2>4. Produtividade agrícola (PAM)</h2>
     <p><strong>Rendimento</strong> = produção (t) × 1000 ÷ área colhida (ha), em kg/ha.</p>
@@ -90,6 +118,24 @@
        Abacaxi foi excluído porque a PAM o reporta em mil frutos (rendimento em kg/ha
        não é comparável); o agregado "Outras" foi excluído por misturar culturas
        heterogêneas.</p>
+    <p>Nos gráficos de produtividade, além do município mostramos o valor do
+       <strong>estado (UF)</strong>: o rendimento agregado da unidade federativa
+       (soma da produção ÷ soma da área colhida — portanto ponderado pela área de cada
+       município) e sua anomalia média por fase. Serve de referência regional para
+       situar o município.</p>
+
+    <h3>Milho: 1ª e 2ª safra</h3>
+    <p>A partir de 2003 a PAM separa o milho em <strong>1ª safra</strong> (verão, sensível
+       ao ENSO como as demais culturas de verão) e <strong>2ª safra</strong> ("safrinha",
+       plantada após a soja e colhida no meio do ano). O painel do município oferece as
+       três séries — milho total (desde 1974), 1ª e 2ª safra (desde 2003). No mapa, como a
+       cor é única por município, cada estado exibe a <strong>safra de maior produção no
+       estado</strong> (safra dominante):</p>
+    <div class="milho-leg">
+      <span><i style="background:#1baf7a"></i> 1ª safra dominante</span>
+      <span><i style="background:#eb6834"></i> 2ª safra dominante</span>
+    </div>
+    <div id="milho-map"><img src="./geo/uf_milho.svg" alt="Mapa das UFs coloridas pela safra de milho dominante (1ª verde, 2ª laranja)"></div>
 
     <h2>5. O que o mapa mostra</h2>
     <p>Cada métrica do painel esquerdo é pré-calculada por município: média do indicador
@@ -116,7 +162,7 @@
 
     <h2>7. Reprodutibilidade</h2>
     <p>Todo o processamento é feito em scripts R versionados no repositório do projeto
-       (<code>scripts/01_oni.R</code> a <code>06_mapa_mensal.R</code>), partindo dos dados
+       (<code>scripts/01_oni.R</code> a <code>07_estado.R</code>), partindo dos dados
        brutos citados na seção 1. O site é 100% estático: os mesmos arquivos CSV exibidos
        nos gráficos são os oferecidos no botão de download de cada município.</p>
 

@@ -117,78 +117,131 @@ export function chartClimatologia(sel, mensal) {
 }
 
 // ---------------------------------------------------------------- (b)
-export const INDICES_SECA = [
-  { id: 'spei6', label: 'SPEI-6' }, { id: 'spei3', label: 'SPEI-3' },
-  { id: 'spei1', label: 'SPEI-1' }, { id: 'spei12', label: 'SPEI-12' },
-  { id: 'spi6', label: 'SPI-6' }, { id: 'spi3', label: 'SPI-3' },
-  { id: 'spi1', label: 'SPI-1' }, { id: 'spi12', label: 'SPI-12' },
+// Linha extra dos tooltips: RONI de pico da safra.
+function linhaRoni(s) {
+  if (!s || s.roni_pico == null) return '';
+  return `<br><span class="tt-roni">RONI safra: ${s.roni_pico > 0 ? '+' : ''}${fmtBR(s.roni_pico, 1)}</span>`;
+}
+
+const VARS_ACUM = [
+  { key: 'rain_mm', label: 'Chuva acumulada', unidade: 'mm', dig: 0 },
+  { key: 'soma_termica', label: 'Soma térmica (base 10 °C)', unidade: '°C·dia', dig: 0 },
+  { key: 'srad_mj', label: 'Radiação acumulada', unidade: 'MJ/m²', dig: 0 },
 ];
+const MESES_INI = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
 
-export function chartSpei(sel, mensal, indice = 'spei3') {
-  const lbl = INDICES_SECA.find((i) => i.id === indice).label;
-  const c = baseSvg(sel, `${lbl} mensal 1980–2025 · fundo = fase da safra (out–mar)`);
+// Curva acumulada média ao longo de 4 meses (a partir do mês escolhido),
+// uma linha por fase ENSO. Facets lado a lado, um por variável.
+export function chartAcumulados(sel, mensal, mesInicial = 10) {
+  const el = d3.select(sel).html('');
+  const head = el.append('div').attr('class', 'acum-head');
+  head.append('h3').text('Acumulado médio ao longo de 4 meses, por fase ENSO');
+  const ctl = head.append('label').attr('class', 'acum-ctl');
+  ctl.append('span').text('a partir de ');
+  const selMes = ctl.append('select')
+    .on('change', function () { chartAcumulados(sel, mensal, +this.value); });
+  selMes.selectAll('option').data(MESES_INI).join('option')
+    .attr('value', (m) => m).property('selected', (m) => m === mesInicial)
+    .text((m) => MESES_CURTOS[m - 1]);
 
-  // seletor de índice dentro do painel
-  const selIdx = c.el.select('h3').append('select')
-    .style('margin-left', '8px')
-    .on('change', function () { chartSpei(sel, mensal, this.value); });
-  selIdx.selectAll('option').data(INDICES_SECA).join('option')
-    .attr('value', (d) => d.id).property('selected', (d) => d.id === indice)
-    .text((d) => d.label);
+  // rótulos dos 4 meses da janela
+  const meses4 = [0, 1, 2, 3].map((k) => ((mesInicial - 1 + k) % 12) + 1);
+  const rotulos = meses4.map((m) => MESES_CURTOS[m - 1]);
 
-  const pts = mensal.filter((r) => r[indice] != null)
-    .map((r) => ({ t: r.ano + (r.mes - 0.5) / 12, spei3: r[indice], ano: r.ano, mes: r.mes }));
+  const mval = new Map();
+  for (const r of mensal) mval.set(`${r.ano}-${r.mes}`, r);
+  const anos = d3.extent(mensal, (r) => r.ano);
 
-  const x = d3.scaleLinear().domain(d3.extent(pts, (p) => p.t)).range([0, c.iw]);
-  const lim = Math.max(2.5, d3.max(pts, (p) => Math.abs(p.spei3)) || 2.5);
-  const y = d3.scaleLinear().domain([-lim, lim]).range([c.ih, 0]);
-
-  // fundo por safra EN/LN (out(t-1) a mar(t)); forte = mais opaco
-  for (const [t, s] of oniSafras) {
-    if (s.fase === 'N') continue;
-    const x0 = x(t - 1 + 9 / 12), x1 = x(t + 3 / 12);
-    if (x1 < 0 || x0 > c.iw) continue;
-    c.g.append('rect')
-      .attr('x', Math.max(0, x0)).attr('width', Math.min(c.iw, x1) - Math.max(0, x0))
-      .attr('y', 0).attr('height', c.ih)
-      .attr('fill', FASE[s.fase].cor)
-      .attr('opacity', s.forte ? 0.28 : 0.13);
+  // por ano: acumulado progressivo (4 passos) de cada variável + fase da safra
+  const registros = { EN: [], LN: [], N: [] };
+  const nFase = { EN: 0, LN: 0, N: 0 };
+  for (let y0 = anos[0]; y0 <= anos[1]; y0++) {
+    const cum = { rain_mm: [], soma_termica: [], srad_mj: [] };
+    const acu = { rain_mm: 0, soma_termica: 0, srad_mj: 0 };
+    let completo = true;
+    for (let k = 0; k < 4; k++) {
+      const mes = ((mesInicial - 1 + k) % 12) + 1;
+      const ano = y0 + Math.floor((mesInicial - 1 + k) / 12);
+      const r = mval.get(`${ano}-${mes}`);
+      if (!r) { completo = false; break; }
+      for (const v of VARS_ACUM) { acu[v.key] += r[v.key] ?? 0; cum[v.key].push(acu[v.key]); }
+    }
+    if (!completo) continue;
+    const s = oniSafras.get(safraDoMes(y0, mesInicial));
+    if (!s) continue;
+    registros[s.fase].push(cum);
+    nFase[s.fase]++;
   }
 
-  eixos(c, x, y, { xFmt: d3.format('d') });
-  c.g.append('line').attr('class', 'zeroline')
-    .attr('x1', 0).attr('x2', c.iw).attr('y1', y(0)).attr('y2', y(0));
+  // média por fase e passo, para cada variável
+  const media = {}; // media[key][fase] = [m0,m1,m2,m3]
+  for (const v of VARS_ACUM) {
+    media[v.key] = {};
+    for (const f of FASES) {
+      const regs = registros[f];
+      media[v.key][f] = regs.length
+        ? [0, 1, 2, 3].map((k) => d3.mean(regs, (c) => c[v.key][k]))
+        : null;
+    }
+  }
 
-  c.g.append('path').datum(pts)
-    .attr('fill', 'none').attr('stroke', INK.primary).attr('stroke-width', 1.2)
-    .attr('d', d3.line().x((p) => x(p.t)).y((p) => y(p.spei3)));
+  const tt = tooltip(el);
+  const painel = el.append('div').attr('class', 'acum-facets');
+  const M = { top: 8, right: 8, bottom: 20, left: 40 };
 
-  legendaFases(c, ['EN', 'LN']).append('span').attr('class', 'legend-note')
-    .text('faixa mais escura = evento forte · índice < 0 = mais seco');
+  // largura uniforme dos facets, medida uma vez (evita reflow do flex no loop)
+  const GAP = 6;
+  const painelW = painel.node().clientWidth || 480;
+  const w = Math.max(92, Math.floor((painelW - (VARS_ACUM.length - 1) * GAP) / VARS_ACUM.length));
+  const H = Math.max(150, w + 20); // quase quadrado
 
-  const tt = tooltip(c.el);
-  const hair = c.g.append('line').attr('class', 'hairline')
-    .attr('y1', 0).attr('y2', c.ih).style('opacity', 0);
-  const bisect = d3.bisector((p) => p.t).center;
-  c.svg.append('rect')
-    .attr('x', MARGIN.left).attr('y', MARGIN.top)
-    .attr('width', c.iw).attr('height', c.ih).attr('fill', 'transparent')
-    .on('mousemove', (ev) => {
-      const [mx] = d3.pointer(ev, c.g.node());
-      const p = pts[bisect(pts, x.invert(mx))];
-      if (!p) return;
-      hair.attr('x1', x(p.t)).attr('x2', x(p.t)).style('opacity', 1);
-      const s = oniSafras.get(safraDoMes(p.ano, p.mes));
-      tt.style('opacity', 1)
-        .style('left', `${Math.min(x(p.t) + MARGIN.left + 10, c.w - 150)}px`)
-        .style('top', '30px')
-        .html(`<b>${MESES_CURTOS[p.mes - 1]}/${p.ano}</b><br>${lbl}: <b>${fmtBR(p.spei3, 2)}</b><br>Safra: ${s ? FASE[s.fase].label : '–'}${s?.forte ? ' (forte)' : ''}`);
-    })
-    .on('mouseleave', () => { hair.style('opacity', 0); tt.style('opacity', 0); });
+  for (const v of VARS_ACUM) {
+    const box = painel.append('div').attr('class', 'acum-facet')
+      .style('flex', `0 0 ${w}px`);
+    box.append('div').attr('class', 'acum-facet-title')
+      .html(`${v.label}<br><span class="acum-unit">(${v.unidade})</span>`);
+    const iw = w - M.left - M.right, ih = H - M.top - M.bottom;
+    const svg = box.append('svg').attr('width', w).attr('height', H);
+    const g = svg.append('g').attr('transform', `translate(${M.left},${M.top})`);
+
+    const x = d3.scalePoint().domain([0, 1, 2, 3]).range([0, iw]);
+    const yMax = d3.max(FASES, (f) => media[v.key][f] ? d3.max(media[v.key][f]) : 0) || 1;
+    const y = d3.scaleLinear().domain([0, yMax]).nice().range([ih, 0]);
+    g.append('g').attr('class', 'axis').attr('transform', `translate(0,${ih})`)
+      .call(d3.axisBottom(x).tickFormat((i) => rotulos[i]).tickSizeOuter(0));
+    g.append('g').attr('class', 'axis')
+      .call(d3.axisLeft(y).ticks(4).tickFormat((n) => fmtBR(n)).tickSizeOuter(0))
+      .call((gg) => gg.selectAll('.tick line').clone().attr('x2', iw).attr('class', 'grid'));
+
+    const linha = d3.line().x((_, i) => x(i)).y((d) => y(d));
+    for (const f of FASES) {
+      const curva = media[v.key][f];
+      if (!curva) continue;
+      g.append('path').datum(curva)
+        .attr('fill', 'none').attr('stroke', FASE[f].cor).attr('stroke-width', 2)
+        .attr('stroke-dasharray', f === 'N' ? '5 4' : null)
+        .attr('d', linha);
+      curva.forEach((val, i) => {
+        g.append('circle').attr('cx', x(i)).attr('cy', y(val)).attr('r', 3)
+          .attr('fill', FASE[f].cor)
+          .on('mousemove', (ev) => {
+            const [mx, my] = d3.pointer(ev, el.node());
+            tt.style('opacity', 1)
+              .style('left', `${Math.min(mx + 12, el.node().clientWidth - 170)}px`)
+              .style('top', `${my - 10}px`)
+              .html(`<b>${rotulos[i]}</b> · ${FASE[f].label} (n=${nFase[f]})<br>` +
+                    `${v.label}: <b>${fmtBR(val, v.dig)} ${v.unidade}</b>`);
+          })
+          .on('mouseleave', () => tt.style('opacity', 0));
+      });
+    }
+  }
+  legendaFases({ el }).append('span').attr('class', 'legend-note')
+    .text('média acumulada; a diferença entre as fases é o que importa');
 }
 
 // ---------------------------------------------------------------- (c)
-export function chartAnomalia(sel, anual, cultura) {
+export function chartAnomalia(sel, anual, cultura, estado = null) {
   const c = baseSvg(sel, 'Anomalia de rendimento por fase ENSO (% vs tendência)');
   const dados = anual
     .filter((r) => r.cultura === cultura)
@@ -248,18 +301,34 @@ export function chartAnomalia(sel, anual, cultura) {
             .style('left', `${Math.min(mx + 12, c.w - 160)}px`).style('top', `${my - 10}px`)
             .html(`<b>${r.ano}</b> · ${FASE[gr.fase].label}${r.forte ? ' <b>(forte)</b>' : ''}<br>` +
                   `Anomalia: <b>${r.val > 0 ? '+' : ''}${fmtBR(r.val, 1)}%</b><br>` +
-                  `Rendimento: ${fmtBR(r.rend_kg_ha)} kg/ha`);
+                  `Rendimento: ${fmtBR(r.rend_kg_ha)} kg/ha${linhaRoni(oniSafras.get(r.ano))}`);
         })
         .on('mouseleave', () => tt.style('opacity', 0));
     });
   }
+
+  // losango vazado por fase = anomalia média do estado (UF) naquela fase
+  const estUf = estado?.filter((r) => r.cultura === cultura && r.anom_rend_pct != null && r.fase);
+  if (estUf?.length) {
+    for (const gr of grupos) {
+      const vs = estUf.filter((r) => r.fase === gr.fase).map((r) => r.anom_rend_pct);
+      if (!vs.length) continue;
+      const cx = x(gr.fase), cy = y(d3.mean(vs)), s = 5;
+      c.g.append('path')
+        .attr('d', `M${cx},${cy - s} L${cx + s},${cy} L${cx},${cy + s} L${cx - s},${cy} Z`)
+        .attr('fill', 'none').attr('stroke', FASE[gr.fase].cor).attr('stroke-width', 2);
+    }
+  }
+
   const lg = legendaFases(c);
   lg.append('span').attr('class', 'legend-note')
-    .text('ponto maior com contorno = El Niño/La Niña forte');
+    .text(estUf?.length
+      ? 'ponto = município · losango = estado (UF) · contorno = evento forte'
+      : 'ponto maior com contorno = El Niño/La Niña forte');
 }
 
 // ---------------------------------------------------------------- (d)
-export function chartRendimento(sel, anual, cultura) {
+export function chartRendimento(sel, anual, cultura, estado = null) {
   const c = baseSvg(sel, 'Rendimento e tendência · anos ENSO marcados');
   const dados = anual
     .filter((r) => r.cultura === cultura && r.rend_kg_ha != null)
@@ -277,10 +346,26 @@ export function chartRendimento(sel, anual, cultura) {
     .filter((r) => r.anom_rend_pct != null && r.anom_rend_pct > -100)
     .map((r) => ({ ano: r.ano, val: r.rend_kg_ha / (1 + r.anom_rend_pct / 100) }));
 
+  const estUf = estado?.filter((r) => r.cultura === cultura && r.rend_kg_ha != null)
+    .sort((a, b) => a.ano - b.ano);
+
   const x = d3.scaleLinear().domain(d3.extent(dados, (r) => r.ano)).range([0, c.iw]);
-  const y = d3.scaleLinear()
-    .domain([0, d3.max(dados, (r) => r.rend_kg_ha)]).nice().range([c.ih, 0]);
+  const yMax = Math.max(d3.max(dados, (r) => r.rend_kg_ha),
+                        estUf?.length ? d3.max(estUf, (r) => r.rend_kg_ha) : 0);
+  const y = d3.scaleLinear().domain([0, yMax]).nice().range([c.ih, 0]);
   eixos(c, x, y, { xFmt: d3.format('d'), yFmt: (v) => fmtBR(v) });
+
+  // linha do estado (UF), rendimento agregado ponderado por área
+  if (estUf?.length) {
+    c.g.append('path').datum(estUf)
+      .attr('fill', 'none').attr('stroke', INK.muted).attr('stroke-width', 1.5)
+      .attr('stroke-dasharray', '2 3')
+      .attr('d', d3.line().x((r) => x(r.ano)).y((r) => y(r.rend_kg_ha)));
+    const fimE = estUf[estUf.length - 1];
+    c.g.append('text').attr('class', 'direct-label')
+      .attr('x', x(fimE.ano) + 4).attr('y', y(fimE.rend_kg_ha) + 10)
+      .attr('fill', INK.muted).text('estado');
+  }
 
   c.g.append('path').datum(dados)
     .attr('fill', 'none').attr('stroke', INK.axis).attr('stroke-width', 1.2)
@@ -309,7 +394,7 @@ export function chartRendimento(sel, anual, cultura) {
         tt.style('opacity', 1)
           .style('left', `${Math.min(mx + 12, c.w - 170)}px`).style('top', `${my - 10}px`)
           .html(`<b>${r.ano}</b> · ${FASE[r.fase]?.label ?? '–'}${r.forte ? ' <b>(forte)</b>' : ''}<br>` +
-                `Rendimento: <b>${fmtBR(r.rend_kg_ha)} kg/ha</b>`);
+                `Rendimento: <b>${fmtBR(r.rend_kg_ha)} kg/ha</b>${linhaRoni(oniSafras.get(r.ano))}`);
       })
       .on('mouseleave', () => tt.style('opacity', 0));
   }

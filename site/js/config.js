@@ -75,7 +75,9 @@ export const INDICADORES = [
 
 export const CULTURAS = [
   { id: 'soja',   label: 'Soja' },
-  { id: 'milho',  label: 'Milho' },
+  { id: 'milho',  label: 'Milho (total)' },
+  { id: 'milho1', label: 'Milho 1ª safra' },
+  { id: 'milho2', label: 'Milho 2ª safra' },
   { id: 'arroz',  label: 'Arroz' },
   { id: 'feijao', label: 'Feijão' },
   { id: 'trigo',  label: 'Trigo' },

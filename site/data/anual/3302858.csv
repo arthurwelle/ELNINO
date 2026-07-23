@@ -1,7 +1,7 @@
 ano,cultura,area_plantada_ha,area_colhida_ha,producao_t,valor_mil_reais,rend_kg_ha,anom_rend_pct,delta_rend_pct,fase,forte,chuva_out_mar_mm,veranico_max_out_mar,dias_tmax34_out_mar
 2001,cana,50,50,1750,123,35000,,,LN,0,915,13,71
 2002,cana,50,50,1750,420,35000,,0,N,0,1166,7,42
-2003,cana,50,50,1750,312,35000,,0,EN,0,1339,19,74
+2003,cana,50,50,1750,312,35000,,0,EN,1,1339,19,74
 2004,cana,50,50,1750,438,35000,,0,N,0,1202,14,29
 2005,cana,50,50,1750,140,35000,,0,EN,0,963,8,25
 2006,cana,50,50,1750,473,35000,,0,LN,0,415,17,37
@@ -11,4 +11,4 @@ ano,cultura,area_plantada_ha,area_colhida_ha,producao_t,valor_mil_reais,rend_kg_
 2010,cana,48,48,1680,487,35000,,0,EN,1,1275,13,55
 2011,cana,48,48,1680,302,35000,,0,LN,1,1003,6,34
 2012,cana,50,50,1750,67,35000,,0,LN,0,746,13,34
-2013,cana,50,50,1750,73,35000,,0,N,0,904,11,44
+2013,cana,50,50,1750,73,35000,,0,LN,0,904,11,44

@@ -1,6 +1,6 @@
 ano,cultura,area_plantada_ha,area_colhida_ha,producao_t,valor_mil_reais,rend_kg_ha,anom_rend_pct,delta_rend_pct,fase,forte,chuva_out_mar_mm,veranico_max_out_mar,dias_tmax34_out_mar
 1974,arroz,,30,90,0,3000,,,LN,1,,,
-1975,arroz,,30,90,0,3000,,0,LN,0,,,
+1975,arroz,,30,90,0,3000,,0,N,0,,,
 1974,cana,,22,1100,0,50000,,,LN,1,,,
-1975,cana,,22,1123,0,51045,,2.1,LN,0,,,
-1976,cana,,22,1100,0,50000,,-2,LN,1,,,
+1975,cana,,22,1123,0,51045,,2.1,N,0,,,
+1976,cana,,22,1100,0,50000,,-2,LN,0,,,

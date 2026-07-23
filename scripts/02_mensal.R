@@ -28,7 +28,9 @@ processa_municipio <- function(g) {
     tmin_med     = round(mean(TMIN), 1),
     dias_tmax34  = sum(TMAX > LIMIAR_TMAX),
     dias_chuva10 = sum(RAIN >= LIMIAR_CHUVA10),
-    veranico_max = max_run(seco)
+    veranico_max = max_run(seco),
+    soma_termica = round(sum(pmax(0, (TMAX + TMIN) / 2 - GDD_BASE))),  # GDD base 10
+    srad_mj      = round(sum(SRAD))                                    # radiacao acum. mensal
   ), by = .(year, month)]
 
   # --- indices mensais: -Inf/Inf -> NA, data -> YYYY-MM --------------------
@@ -46,7 +48,8 @@ processa_municipio <- function(g) {
     spi3 = round(SPI_3, 2),  spei3 = round(SPEI_3, 2),
     spi6 = round(SPI_6, 2),  spei6 = round(SPEI_6, 2),
     spi12 = round(SPI_12, 2), spei12 = round(SPEI_12, 2),
-    tmax_med, tmin_med, dias_tmax34, dias_chuva10, veranico_max
+    tmax_med, tmin_med, dias_tmax34, dias_chuva10, veranico_max,
+    soma_termica, srad_mj
   )]
   fwrite_site(out, file.path(DIR_SITE_MENSAL, paste0(g, ".csv")))
 

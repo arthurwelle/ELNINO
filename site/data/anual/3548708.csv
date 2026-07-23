@@ -1,7 +1,7 @@
 ano,cultura,area_plantada_ha,area_colhida_ha,producao_t,valor_mil_reais,rend_kg_ha,anom_rend_pct,delta_rend_pct,fase,forte,chuva_out_mar_mm,veranico_max_out_mar,dias_tmax34_out_mar
 1974,milho,,50,120,0,2400,,,LN,1,,,
-1975,milho,,10,22,0,2200,,-8.3,LN,0,,,
-1976,milho,,8,18,0,2250,,2.3,LN,1,,,
+1975,milho,,10,22,0,2200,,-8.3,N,0,,,
+1976,milho,,8,18,0,2250,,2.3,LN,0,,,
 1977,milho,,8,18,0,2250,,0,EN,0,,,
 1978,milho,,62,93,0,1500,,-33.3,EN,0,,,
 1979,milho,,100,240,0,2400,,60,N,0,,,
