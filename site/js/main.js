@@ -59,9 +59,10 @@ async function onSelect(geocod, nome, uf) {
   chartAcumulados('#chart-acum', dados.mensal);
 
   $('pam-aviso').hidden = temPam;
-  $('pam-controls').style.display = temPam ? '' : 'none';
-  $('chart-anom').style.display = temPam ? '' : 'none';
-  $('chart-rend').style.display = temPam ? '' : 'none';
+  for (const id of ['pam-controls', 'scope-muni', 'chart-anom', 'chart-rend',
+                    'scope-uf', 'chart-anom-uf', 'chart-rend-uf']) {
+    $(id).style.display = temPam ? '' : 'none';
+  }
   if (temPam) {
     // mantém a cultura escolhida se existir neste município; senão, default
     const disp = new Set(dados.anual.map((r) => r.cultura));
@@ -72,8 +73,20 @@ async function onSelect(geocod, nome, uf) {
 
 function renderPam() {
   if (!atual?.anual) return;
-  chartAnomalia('#chart-anom', atual.anual, selCultura.value, atual.estado);
-  chartRendimento('#chart-rend', atual.anual, selCultura.value, atual.estado);
+  const cult = selCultura.value;
+  chartAnomalia('#chart-anom', atual.anual, cult);
+  chartRendimento('#chart-rend', atual.anual, cult);
+
+  // gráficos do estado (UF) — mesmas funções com a série agregada
+  const temEstado = atual.estado?.some((r) => r.cultura === cult);
+  const rot = ` — ${atual.uf} (estado)`;
+  $('scope-uf').style.display = temEstado ? '' : 'none';
+  $('chart-anom-uf').style.display = temEstado ? '' : 'none';
+  $('chart-rend-uf').style.display = temEstado ? '' : 'none';
+  if (temEstado) {
+    chartAnomalia('#chart-anom-uf', atual.estado, cult, rot);
+    chartRendimento('#chart-rend-uf', atual.estado, cult, rot);
+  }
 }
 
 function onDeselect() {

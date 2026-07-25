@@ -261,6 +261,15 @@ select {
   font-weight: 600;
 }
 
+.scope-label {
+  font-family: var(--font-display);
+  font-size: 12px; font-weight: 700;
+  color: var(--text-2);
+  text-transform: uppercase; letter-spacing: 0.04em;
+  margin: 4px 2px -4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
 #pam-controls { display: flex; align-items: center; gap: 8px; padding: 8px 12px; }
 #pam-controls label { font-size: 13px; font-weight: bold; color: var(--accent); }
 #pam-aviso { font-size: 13px; color: var(--text-2); font-style: italic; padding: 4px 2px; }

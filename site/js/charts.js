@@ -241,8 +241,8 @@ export function chartAcumulados(sel, mensal, mesInicial = 10) {
 }
 
 // ---------------------------------------------------------------- (c)
-export function chartAnomalia(sel, anual, cultura, estado = null) {
-  const c = baseSvg(sel, 'Anomalia de rendimento por fase ENSO (% vs tendência)');
+export function chartAnomalia(sel, anual, cultura, rotulo = '') {
+  const c = baseSvg(sel, `Anomalia de rendimento por fase ENSO (% vs tendência)${rotulo}`);
   const dados = anual
     .filter((r) => r.cultura === cultura)
     .map((r) => ({ ...r, val: r.anom_rend_pct ?? r.delta_rend_pct }))
@@ -307,29 +307,14 @@ export function chartAnomalia(sel, anual, cultura, estado = null) {
     });
   }
 
-  // losango vazado por fase = anomalia média do estado (UF) naquela fase
-  const estUf = estado?.filter((r) => r.cultura === cultura && r.anom_rend_pct != null && r.fase);
-  if (estUf?.length) {
-    for (const gr of grupos) {
-      const vs = estUf.filter((r) => r.fase === gr.fase).map((r) => r.anom_rend_pct);
-      if (!vs.length) continue;
-      const cx = x(gr.fase), cy = y(d3.mean(vs)), s = 5;
-      c.g.append('path')
-        .attr('d', `M${cx},${cy - s} L${cx + s},${cy} L${cx},${cy + s} L${cx - s},${cy} Z`)
-        .attr('fill', 'none').attr('stroke', FASE[gr.fase].cor).attr('stroke-width', 2);
-    }
-  }
-
   const lg = legendaFases(c);
   lg.append('span').attr('class', 'legend-note')
-    .text(estUf?.length
-      ? 'ponto = município · losango = estado (UF) · contorno = evento forte'
-      : 'ponto maior com contorno = El Niño/La Niña forte');
+    .text('ponto maior com contorno = El Niño/La Niña forte');
 }
 
 // ---------------------------------------------------------------- (d)
-export function chartRendimento(sel, anual, cultura, estado = null) {
-  const c = baseSvg(sel, 'Rendimento e tendência · anos ENSO marcados');
+export function chartRendimento(sel, anual, cultura, rotulo = '') {
+  const c = baseSvg(sel, `Rendimento e tendência · anos ENSO marcados${rotulo}`);
   const dados = anual
     .filter((r) => r.cultura === cultura && r.rend_kg_ha != null)
     .sort((a, b) => a.ano - b.ano);
@@ -346,26 +331,10 @@ export function chartRendimento(sel, anual, cultura, estado = null) {
     .filter((r) => r.anom_rend_pct != null && r.anom_rend_pct > -100)
     .map((r) => ({ ano: r.ano, val: r.rend_kg_ha / (1 + r.anom_rend_pct / 100) }));
 
-  const estUf = estado?.filter((r) => r.cultura === cultura && r.rend_kg_ha != null)
-    .sort((a, b) => a.ano - b.ano);
-
   const x = d3.scaleLinear().domain(d3.extent(dados, (r) => r.ano)).range([0, c.iw]);
-  const yMax = Math.max(d3.max(dados, (r) => r.rend_kg_ha),
-                        estUf?.length ? d3.max(estUf, (r) => r.rend_kg_ha) : 0);
-  const y = d3.scaleLinear().domain([0, yMax]).nice().range([c.ih, 0]);
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(dados, (r) => r.rend_kg_ha)]).nice().range([c.ih, 0]);
   eixos(c, x, y, { xFmt: d3.format('d'), yFmt: (v) => fmtBR(v) });
-
-  // linha do estado (UF), rendimento agregado ponderado por área
-  if (estUf?.length) {
-    c.g.append('path').datum(estUf)
-      .attr('fill', 'none').attr('stroke', INK.muted).attr('stroke-width', 1.5)
-      .attr('stroke-dasharray', '2 3')
-      .attr('d', d3.line().x((r) => x(r.ano)).y((r) => y(r.rend_kg_ha)));
-    const fimE = estUf[estUf.length - 1];
-    c.g.append('text').attr('class', 'direct-label')
-      .attr('x', x(fimE.ano) + 4).attr('y', y(fimE.rend_kg_ha) + 10)
-      .attr('fill', INK.muted).text('estado');
-  }
 
   c.g.append('path').datum(dados)
     .attr('fill', 'none').attr('stroke', INK.axis).attr('stroke-width', 1.2)
