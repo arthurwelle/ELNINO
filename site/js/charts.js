@@ -256,7 +256,7 @@ export function chartAnomalia(sel, anual, cultura, rotulo = '') {
   }
   const usaLoess = dados.some((r) => r.anom_rend_pct != null);
   if (!usaLoess) {
-    c.el.select('h3').text('Variação anual do rendimento por fase ENSO (Δ% a-a, série curta)');
+    c.el.select('h3').text(`Variação anual do rendimento por fase ENSO (Δ% a-a, série curta)${rotulo}`);
   }
 
   const grupos = FASES.map((f) => ({ fase: f, vals: dados.filter((r) => r.fase === f) }));

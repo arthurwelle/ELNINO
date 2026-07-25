@@ -78,7 +78,7 @@ function renderPam() {
   chartRendimento('#chart-rend', atual.anual, cult);
 
   // gráficos do estado (UF) — mesmas funções com a série agregada
-  const temEstado = atual.estado?.some((r) => r.cultura === cult);
+  const temEstado = atual.estado?.some((r) => r.cultura === cult && r.rend_kg_ha != null);
   const rot = ` — ${atual.uf} (estado)`;
   $('scope-uf').style.display = temEstado ? '' : 'none';
   $('chart-anom-uf').style.display = temEstado ? '' : 'none';

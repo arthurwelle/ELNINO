@@ -37,6 +37,7 @@ export async function loadEstado(uf) {
     ano: +d.ano,
     rend_kg_ha: d.rend_kg_ha === '' ? null : +d.rend_kg_ha,
     anom_rend_pct: d.anom_rend_pct === '' ? null : +d.anom_rend_pct,
+    delta_rend_pct: d.delta_rend_pct === '' ? null : +d.delta_rend_pct,
     fase: d.fase,
     forte: +d.forte === 1,
     roni_pico: d.roni_pico === '' ? null : +d.roni_pico,
