@@ -117,10 +117,10 @@ export function chartClimatologia(sel, mensal) {
 }
 
 // ---------------------------------------------------------------- (b)
-// Linha extra dos tooltips: RONI de pico da safra.
-function linhaRoni(s) {
-  if (!s || s.roni_pico == null) return '';
-  return `<br><span class="tt-roni">RONI safra: ${s.roni_pico > 0 ? '+' : ''}${fmtBR(s.roni_pico, 1)}</span>`;
+// Linha extra dos tooltips: RONI da janela ENSO da cultura.
+function linhaRoni(roni) {
+  if (roni == null || Number.isNaN(roni)) return '';
+  return `<br><span class="tt-roni">RONI janela: ${roni > 0 ? '+' : ''}${fmtBR(roni, 1)}</span>`;
 }
 
 const VARS_ACUM = [
@@ -301,7 +301,7 @@ export function chartAnomalia(sel, anual, cultura, rotulo = '') {
             .style('left', `${Math.min(mx + 12, c.w - 160)}px`).style('top', `${my - 10}px`)
             .html(`<b>${r.ano}</b> · ${FASE[gr.fase].label}${r.forte ? ' <b>(forte)</b>' : ''}<br>` +
                   `Anomalia: <b>${r.val > 0 ? '+' : ''}${fmtBR(r.val, 1)}%</b><br>` +
-                  `Rendimento: ${fmtBR(r.rend_kg_ha)} kg/ha${linhaRoni(oniSafras.get(r.ano))}`);
+                  `Rendimento: ${fmtBR(r.rend_kg_ha)} kg/ha${linhaRoni(r.roni_pico)}`);
         })
         .on('mouseleave', () => tt.style('opacity', 0));
     });
@@ -363,7 +363,7 @@ export function chartRendimento(sel, anual, cultura, rotulo = '') {
         tt.style('opacity', 1)
           .style('left', `${Math.min(mx + 12, c.w - 170)}px`).style('top', `${my - 10}px`)
           .html(`<b>${r.ano}</b> · ${FASE[r.fase]?.label ?? '–'}${r.forte ? ' <b>(forte)</b>' : ''}<br>` +
-                `Rendimento: <b>${fmtBR(r.rend_kg_ha)} kg/ha</b>${linhaRoni(oniSafras.get(r.ano))}`);
+                `Rendimento: <b>${fmtBR(r.rend_kg_ha)} kg/ha</b>${linhaRoni(r.roni_pico)}`);
       })
       .on('mouseleave', () => tt.style('opacity', 0));
   }

@@ -84,6 +84,17 @@ export const CULTURAS = [
   { id: 'cana',   label: 'Cana-de-açúcar' },
 ];
 
+// Janela ENSO analisada por cultura (produtividade). milho total depende da UF.
+const JANELA = {
+  DJF: 'dez–jan–fev', SON: 'set–out–nov', MAM: 'mar–abr–mai',
+};
+export function janelaCultura(cultura, safraDominanteUf) {
+  if (cultura === 'trigo') return JANELA.SON;
+  if (cultura === 'milho2') return JANELA.MAM;
+  if (cultura === 'milho') return safraDominanteUf === 2 ? JANELA.MAM : JANELA.DJF;
+  return JANELA.DJF; // soja, milho1, arroz, feijao, cana
+}
+
 export const MESES_CURTOS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun',
                              'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 export const MESES_LONGOS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',

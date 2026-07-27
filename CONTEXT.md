@@ -14,8 +14,12 @@ Termos canônicos do projeto. Somente linguagem de domínio; nada de implementa�
 - **Ano-safra**: o ano `t` da safra de verão plantada em set–dez de `t−1` e colhida em `t`.
   É a unidade de atribuição de fase: a safra `t` recebe a fase ONI **predominante entre
   out(t−1) e mar(t)**. O ano da PAM é interpretado como ano-safra.
-- **Evento forte**: safra cujo |ONI de pico| ≥ 1,5 °C (ex.: 1983, 1998, 2016, 2024 EN;
-  1989, 2000, 2008, 2011 LN).
+- **Evento forte**: safra cujo |RONI de pico| ≥ 1,5 °C (ex.: 1983, 1998, 2016 EN;
+  1989, 2000, 2008, 2011, 2021 LN).
+- **Janela ENSO por cultura**: nos gráficos de produtividade, a fase de cada cultura vem
+  do trimestre RONI do seu período crítico, no ano da colheita — DJF (dez–fev) para 1ª
+  safra de verão, SON (set–nov) para trigo, MAM (mar–mai) para milho 2ª safra; milho
+  total segue a safra dominante da UF. O clima segue a janela geral out–mar.
 
 ## Agricultura (PAM/IBGE)
 

@@ -47,6 +47,24 @@ DELTA_CAP     <- 200   # cap em % para delta ano-a-ano
 
 CULTURAS <- c("soja", "milho", "arroz", "feijao", "trigo", "cana")
 
+# codigo IBGE (2 primeiros digitos do geocodigo) -> sigla da UF
+UF_COD <- c("11"="RO","12"="AC","13"="AM","14"="RR","15"="PA","16"="AP","17"="TO",
+            "21"="MA","22"="PI","23"="CE","24"="RN","25"="PB","26"="PE","27"="AL",
+            "28"="SE","29"="BA","31"="MG","32"="ES","33"="RJ","35"="SP","41"="PR",
+            "42"="SC","43"="RS","50"="MS","51"="MT","52"="GO","53"="DF")
+
+# Janela ENSO por cultura (mes central do trimestre RONI, no ano da colheita):
+# DJF=1 (1a safra de verao), SON=10 (trigo, inverno), MAM=4 (milho 2a safra/safrinha).
+# milho total segue a safra dominante da UF (1->DJF, 2->MAM).
+janela_mes <- function(cultura, safra_dominante_uf = NA_integer_) {
+  fifelse(cultura == "trigo", 10L,
+   fifelse(cultura == "milho2", 4L,
+    fifelse(cultura == "milho1", 1L,
+     fifelse(cultura == "milho",
+             fifelse(!is.na(safra_dominante_uf) & safra_dominante_uf == 2L, 4L, 1L),
+             1L))))  # soja, arroz, feijao, cana -> DJF
+}
+
 # --- helpers ----------------------------------------------------------------
 geocods_disponiveis <- function() {
   gx <- sub("\\.csv\\.gz$", "", list.files(DIR_XAVIER,  pattern = "\\.csv\\.gz$"))

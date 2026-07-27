@@ -5,12 +5,15 @@ const cacheEstado = new Map();
 
 export let resumo = new Map();      // code_muni -> linha do resumo.csv
 export let oniSafras = new Map();   // ano_safra -> {fase, roni_pico, oni_pico, forte}
+export let milhoSafraUf = new Map();// uf -> safra_dominante (1|2)
 
 export async function loadBoot() {
-  const [res, oni] = await Promise.all([
+  const [res, oni, milho] = await Promise.all([
     d3.csv('./data/resumo.csv'),
     d3.csv('./data/oni_safras.csv'),
+    d3.csv('./data/milho_safra_uf.csv').catch(() => []),
   ]);
+  for (const r of milho) milhoSafraUf.set(r.uf, +r.safra_dominante);
   for (const r of res) {
     for (const k of Object.keys(r)) {
       if (k !== 'code_muni' && k !== 'nome' && k !== 'uf') {
@@ -72,6 +75,7 @@ export async function loadMunicipio(geocod) {
     delta_rend_pct: d.delta_rend_pct === '' ? null : +d.delta_rend_pct,
     fase: d.fase,
     forte: +d.forte === 1,
+    roni_pico: d.roni_pico === '' ? null : +d.roni_pico,
   })).catch(() => null);
 
   const [mensal, anual] = await Promise.all([mensalP, anualP]);

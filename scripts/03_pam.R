@@ -46,12 +46,31 @@ setorder(pam, id_municipio, cultura, ano)
 pam[, c("anom_rend_pct", "delta_rend_pct") :=
       calc_metrica_rendimento(ano, rend_kg_ha), by = .(id_municipio, cultura)]
 
-# junta fase ENSO e clima de safra
-safras <- fread(file.path(DIR_SITE_DATA, "oni_safras.csv"))
-clima  <- setDT(read_parquet(file.path(DIR_DERIVED, "safra_clima.parquet")))
+# --- safra de milho dominante por UF (gerado aqui; usado por 07 e 08) -------
+pam[, uf := UF_COD[substr(id_municipio, 1, 2)]]
+if (any(c("milho1", "milho2") %in% pam$cultura)) {
+  dom <- pam[cultura %in% c("milho1", "milho2") & ano >= 2003,
+             .(q = sum(quantidade_produzida, na.rm = TRUE)), by = .(uf, cultura)]
+  dom <- dcast(dom, uf ~ cultura, value.var = "q", fill = 0)
+  dom[, safra_dominante := fifelse(get("milho2") > get("milho1"), 2L, 1L)]
+  fwrite_site(dom[, .(uf, safra_dominante)],
+              file.path(DIR_SITE_DATA, "milho_safra_uf.csv"))
+  pam <- merge(pam, dom[, .(uf, safra_dominante)], by = "uf", all.x = TRUE)
+} else {
+  pam[, safra_dominante := NA_integer_]
+}
 
-out <- merge(pam, safras, by.x = "ano", by.y = "ano_safra", all.x = TRUE)
-out <- merge(out, clima, by.x = c("id_municipio", "ano"),
+# --- fase ENSO por janela especifica da cultura (no ano da colheita) --------
+oni <- fread(file.path(DIR_SITE_DATA, "oni.csv"))  # ano, mes, roni, oni, fase
+pam[, mes_janela := janela_mes(cultura, safra_dominante)]
+pam <- merge(pam, oni[, .(ano, mes, roni, fase)],
+             by.x = c("ano", "mes_janela"), by.y = c("ano", "mes"), all.x = TRUE)
+pam[, `:=`(roni_pico = round(roni, 2),
+           forte = as.integer(abs(roni) >= ONI_FORTE))]
+
+# clima da safra (out-mar) — janela climatica geral, independe da cultura
+clima <- setDT(read_parquet(file.path(DIR_DERIVED, "safra_clima.parquet")))
+out <- merge(pam, clima, by.x = c("id_municipio", "ano"),
              by.y = c("geocod", "ano_safra"), all.x = TRUE)
 
 out <- out[, .(
@@ -59,7 +78,7 @@ out <- out[, .(
   area_plantada_ha = area_plantada, area_colhida_ha = area_colhida,
   producao_t = quantidade_produzida, valor_mil_reais = valor_producao,
   rend_kg_ha = round(rend_kg_ha), anom_rend_pct, delta_rend_pct,
-  fase, forte,
+  fase, forte, roni_pico,
   chuva_out_mar_mm, veranico_max_out_mar, dias_tmax34_out_mar
 )]
 setorder(out, geocod, cultura, ano)

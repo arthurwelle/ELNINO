@@ -1,7 +1,7 @@
 // Orquestração: boot, seleção de município, seletores, download.
 
-import { CULTURAS, debounce } from './config.js';
-import { loadBoot, loadMunicipio, loadEstado } from './data.js';
+import { CULTURAS, debounce, janelaCultura } from './config.js';
+import { loadBoot, loadMunicipio, loadEstado, milhoSafraUf } from './data.js';
 import { map, initInteracao } from './map.js';
 import { initSidebar } from './sidebar.js';
 import { chartClimatologia, chartAcumulados, chartAnomalia, chartRendimento } from './charts.js';
@@ -59,8 +59,8 @@ async function onSelect(geocod, nome, uf) {
   chartAcumulados('#chart-acum', dados.mensal);
 
   $('pam-aviso').hidden = temPam;
-  for (const id of ['pam-controls', 'scope-muni', 'chart-anom', 'chart-rend',
-                    'scope-uf', 'chart-anom-uf', 'chart-rend-uf']) {
+  for (const id of ['pam-controls', 'chart-anom', 'chart-anom-uf',
+                    'chart-rend', 'chart-rend-uf']) {
     $(id).style.display = temPam ? '' : 'none';
   }
   if (temPam) {
@@ -74,13 +74,15 @@ async function onSelect(geocod, nome, uf) {
 function renderPam() {
   if (!atual?.anual) return;
   const cult = selCultura.value;
+  // janela ENSO analisada para a cultura (muda a cada seleção)
+  const janela = janelaCultura(cult, atual.uf ? milhoSafraUf.get(atual.uf) : undefined);
+  $('cultura-janela').textContent = `Janela ENSO: ${janela}`;
   chartAnomalia('#chart-anom', atual.anual, cult);
   chartRendimento('#chart-rend', atual.anual, cult);
 
   // gráficos do estado (UF) — mesmas funções com a série agregada
   const temEstado = atual.estado?.some((r) => r.cultura === cult && r.rend_kg_ha != null);
   const rot = ` — ${atual.uf} (estado)`;
-  $('scope-uf').style.display = temEstado ? '' : 'none';
   $('chart-anom-uf').style.display = temEstado ? '' : 'none';
   $('chart-rend-uf').style.display = temEstado ? '' : 'none';
   if (temEstado) {
