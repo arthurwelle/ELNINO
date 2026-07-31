@@ -5,6 +5,7 @@ source("scripts/00_config.R")
 suppressPackageStartupMessages({
   library(arrow)
   library(jsonlite)
+  library(sf)
 })
 
 clima  <- setDT(read_parquet(file.path(DIR_DERIVED, "safra_clima.parquet")))
@@ -46,6 +47,14 @@ res_clima <- clima[, {
 gj <- fromJSON(file.path(DIR_GEO, "municipios.geojson"), simplifyVector = TRUE)
 props <- setDT(gj$features$properties)
 props <- props[, .(geocod = as.character(code_muni), nome = name_muni, uf = abbrev_state)]
+
+# centroide de cada municipio (lon/lat) — usado pela busca no site p/ centralizar o mapa
+geo_sf <- st_read(file.path(DIR_GEO, "municipios.geojson"), quiet = TRUE)
+cent <- suppressWarnings(st_centroid(st_make_valid(geo_sf)))
+coords <- st_coordinates(cent)
+centroides <- data.table(geocod = as.character(geo_sf$code_muni),
+                         lon = round(coords[, 1], 4), lat = round(coords[, 2], 4))
+props <- merge(props, centroides, by = "geocod", all.x = TRUE)
 
 # anomalia media de rendimento em safras EN
 pam <- setDT(read_parquet(file.path(DIR_DERIVED, "pam_anual.parquet")))

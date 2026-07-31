@@ -36,6 +36,9 @@ message("resumo sem poligono: ", length(so_resumo),
         if (length(so_resumo)) paste0(" [", paste(head(so_resumo, 5), collapse = ","), "]") else "")
 message("poligono sem resumo: ", length(so_geo),
         if (length(so_geo)) paste0(" [", paste(head(so_geo, 5), collapse = ","), "]") else "")
+sem_coord <- resumo[is.na(lon) | is.na(lat), .N]
+message("resumo sem lon/lat: ", sem_coord)
+if (sem_coord > nrow(resumo) * 0.01) falha("mais de 1% dos municipios sem centroide")
 
 # 3. sanidade PAM
 anuais <- list.files(DIR_SITE_ANUAL, pattern = "\\.csv$", full.names = TRUE)

@@ -70,13 +70,51 @@ body {
 #hover-label.active { font-style: normal; color: var(--accent); font-weight: bold; }
 
 #link-metodologia {
-  margin-left: auto;
   font-size: 12px;
   color: var(--accent);
   text-decoration: underline;
   white-space: nowrap;
   align-self: center;
 }
+
+/* === Busca de município ================================================= */
+#busca-municipio {
+  position: relative;
+  margin-left: auto;
+  align-self: center;
+}
+#busca-input {
+  font-size: 12.5px;
+  padding: 5px 10px;
+  border: 1px solid var(--sel-border);
+  border-radius: 14px;
+  background: var(--sel-bg);
+  color: var(--text);
+  width: 200px;
+  transition: width 0.15s ease;
+}
+#busca-input:focus { outline: none; border-color: var(--accent); width: 240px; }
+#busca-resultados {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 260px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  list-style: none;
+  z-index: 50;
+}
+#busca-resultados li {
+  padding: 6px 10px;
+  font-size: 12.5px;
+  cursor: pointer;
+  color: var(--text);
+}
+#busca-resultados li:hover, #busca-resultados li.ativo { background: var(--surface-2); }
 
 /* === Layout 60/40 ======================================================= */
 #app-layout { flex: 1; display: flex; overflow: hidden; min-height: 0; }
@@ -374,4 +412,7 @@ select {
   #app-layout { flex-direction: column; }
   #map-panel { flex: 0 0 55vh; min-height: 380px; }
   #right-panel { flex: 1 1 auto; overflow: visible; }
+  #hover-label { display: none; }
+  #busca-input { width: 120px; }
+  #busca-input:focus { width: 150px; }
 }

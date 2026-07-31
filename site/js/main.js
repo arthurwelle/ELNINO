@@ -1,9 +1,10 @@
 // Orquestração: boot, seleção de município, seletores, download.
 
 import { CULTURAS, debounce } from './config.js';
-import { loadBoot, loadMunicipio, loadEstado, janelaUf } from './data.js';
-import { map, initInteracao } from './map.js';
+import { loadBoot, loadMunicipio, loadEstado, janelaUf, resumo } from './data.js';
+import { map, initInteracao, selecionarNoMapa } from './map.js';
 import { initSidebar } from './sidebar.js';
+import { initBusca } from './busca.js';
 import { chartClimatologia, chartAcumulados, chartAnomalia, chartRendimento } from './charts.js';
 
 const $ = (id) => document.getElementById(id);
@@ -114,9 +115,13 @@ window.addEventListener('resize', debounce(rerenderCharts, 200));
   await loadBoot();
   initSidebar();  // monta a UI da sidebar já; o choropleth pinta no load do mapa
   initInteracao(onSelect, onDeselect);
+  initBusca((geocod, nome, uf) => {
+    const r = resumo.get(geocod);
+    selecionarNoMapa(geocod, r?.lon, r?.lat);
+    onSelect(geocod, nome, uf);
+  });
 
   // deep-link: ?muni=<geocod> abre o município direto (link compartilhável)
-  const { resumo } = await import('./data.js');
   const geocod = new URLSearchParams(location.search).get('muni');
   const r = geocod && resumo.get(geocod);
   if (r) onSelect(geocod, r.nome, r.uf);

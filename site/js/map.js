@@ -204,3 +204,25 @@ export function clearSelection() {
     selectedId = null;
   }
 }
+
+// Seleção programática (busca): voa até o centroide e destaca o município
+// quando os tiles daquela área terminarem de carregar.
+export function selecionarNoMapa(codeMuni, lon, lat) {
+  clearSelection();
+  const destacar = () => {
+    const feats = map.querySourceFeatures('municipios', {
+      sourceLayer: 'mun',
+      filter: ['==', ['get', 'code_muni'], Number(codeMuni)],
+    });
+    if (feats.length) {
+      selectedId = feats[0].id;
+      map.setFeatureState({ source: 'municipios', sourceLayer: 'mun', id: selectedId }, { selected: true });
+    }
+  };
+  if (lon != null && lat != null && !Number.isNaN(lon) && !Number.isNaN(lat)) {
+    map.flyTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 8.5), speed: 1.4 });
+    map.once('idle', destacar);
+  } else {
+    destacar();
+  }
+}
