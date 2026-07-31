@@ -46,6 +46,14 @@ function tooltip(el) {
   return el.append('div').attr('class', 'chart-tooltip').style('opacity', 0);
 }
 
+// d3.pointer só lê clientX/clientY do próprio evento — um TouchEvent não tem
+// essas propriedades (ficam em .touches[0]). Isso permite reusar a mesma lógica
+// de mousemove (scrub contínuo no mouse) também em touchstart (toque = ponto
+// mais próximo, sem exigir acertar o alvo minúsculo do círculo).
+function pointerXY(ev, node) {
+  return d3.pointer(ev.touches ? ev.touches[0] : ev, node);
+}
+
 const fmtBR = (n, dig = 0) =>
   n == null ? '–' : n.toLocaleString('pt-BR', { maximumFractionDigits: dig });
 
@@ -97,22 +105,24 @@ export function chartClimatologia(sel, mensal) {
   const tt = tooltip(c.el);
   const hair = c.g.append('line').attr('class', 'hairline')
     .attr('y1', 0).attr('y2', c.ih).style('opacity', 0);
+  const mostraPonto = (ev) => {
+    const [mx] = pointerXY(ev, c.g.node());
+    const i = Math.max(0, Math.min(11, Math.round((mx / c.iw) * 11)));
+    hair.attr('x1', x(i)).attr('x2', x(i)).style('opacity', 1);
+    const linhas = series.map((s) => {
+      const p = s.pts.find((q) => q.i === i);
+      return `<span style="color:${FASE[s.fase].cor}">●</span> ${FASE[s.fase].label}: <b>${fmtBR(p?.val)} mm</b>`;
+    }).join('<br>');
+    tt.style('opacity', 1)
+      .style('left', `${x(i) + MARGIN.left + 10}px`).style('top', '30px')
+      .html(`<b>${MESES_CURTOS[ordem[i] - 1]}</b><br>${linhas}`);
+  };
   c.svg.append('rect')
     .attr('x', MARGIN.left).attr('y', MARGIN.top)
     .attr('width', c.iw).attr('height', c.ih)
-    .attr('fill', 'transparent')
-    .on('mousemove', (ev) => {
-      const [mx] = d3.pointer(ev, c.g.node());
-      const i = Math.max(0, Math.min(11, Math.round((mx / c.iw) * 11)));
-      hair.attr('x1', x(i)).attr('x2', x(i)).style('opacity', 1);
-      const linhas = series.map((s) => {
-        const p = s.pts.find((q) => q.i === i);
-        return `<span style="color:${FASE[s.fase].cor}">●</span> ${FASE[s.fase].label}: <b>${fmtBR(p?.val)} mm</b>`;
-      }).join('<br>');
-      tt.style('opacity', 1)
-        .style('left', `${x(i) + MARGIN.left + 10}px`).style('top', '30px')
-        .html(`<b>${MESES_CURTOS[ordem[i] - 1]}</b><br>${linhas}`);
-    })
+    .attr('fill', 'transparent').attr('class', 'touch-overlay')
+    .on('mousemove', mostraPonto)
+    .on('touchstart', mostraPonto)
     .on('mouseleave', () => { hair.style('opacity', 0); tt.style('opacity', 0); });
 }
 
@@ -189,15 +199,21 @@ export function chartAcumulados(sel, mensal, mesInicial = 10) {
   const painel = el.append('div').attr('class', 'acum-facets');
   const M = { top: 8, right: 8, bottom: 20, left: 40 };
 
-  // largura uniforme dos facets, medida uma vez (evita reflow do flex no loop)
+  // abaixo do limiar, empilha 1 coluna (mais legível em tela estreita) —
+  // limiar aqui deve bater com o breakpoint CSS de .acum-facets.empilha
+  const EMPILHA_LARGURA = 380;
   const GAP = 6;
   const painelW = painel.node().clientWidth || 480;
-  const w = Math.max(92, Math.floor((painelW - (VARS_ACUM.length - 1) * GAP) / VARS_ACUM.length));
-  const H = Math.max(150, w + 20); // quase quadrado
+  const empilha = painelW < EMPILHA_LARGURA;
+  painel.classed('empilha', empilha);
+  const w = empilha
+    ? painelW
+    : Math.max(92, Math.floor((painelW - (VARS_ACUM.length - 1) * GAP) / VARS_ACUM.length));
+  const H = empilha ? 150 : Math.max(150, w + 20); // quase quadrado só lado a lado
 
   for (const v of VARS_ACUM) {
     const box = painel.append('div').attr('class', 'acum-facet')
-      .style('flex', `0 0 ${w}px`);
+      .style('width', `${w}px`);
     box.append('div').attr('class', 'acum-facet-title')
       .html(`${v.label}<br><span class="acum-unit">(${v.unidade})</span>`);
     const iw = w - M.left - M.right, ih = H - M.top - M.bottom;
@@ -222,19 +238,32 @@ export function chartAcumulados(sel, mensal, mesInicial = 10) {
         .attr('stroke-dasharray', f === 'N' ? '5 4' : null)
         .attr('d', linha);
       curva.forEach((val, i) => {
+        // marcador visual — interação fica no overlay abaixo (alvo grande, toque ok)
         g.append('circle').attr('cx', x(i)).attr('cy', y(val)).attr('r', 3)
-          .attr('fill', FASE[f].cor)
-          .on('mousemove', (ev) => {
-            const [mx, my] = d3.pointer(ev, el.node());
-            tt.style('opacity', 1)
-              .style('left', `${Math.min(mx + 12, el.node().clientWidth - 170)}px`)
-              .style('top', `${my - 10}px`)
-              .html(`<b>${rotulos[i]}</b> · ${FASE[f].label} (n=${nFase[f]})<br>` +
-                    `${v.label}: <b>${fmtBR(val, v.dig)} ${v.unidade}</b>`);
-          })
-          .on('mouseleave', () => tt.style('opacity', 0));
+          .attr('fill', FASE[f].cor);
       });
     }
+
+    // overlay do tamanho do facet: acha o passo (0-3) mais próximo do toque/mouse
+    // e mostra as 3 fases juntas — alvo grande, não depende de acertar o círculo
+    const mostraPasso = (ev) => {
+      const [mx] = pointerXY(ev, g.node());
+      const i = Math.max(0, Math.min(3, Math.round((mx / iw) * 3)));
+      const linhas = FASES.filter((f) => media[v.key][f]).map((f) => {
+        const val = media[v.key][f][i];
+        return `<span style="color:${FASE[f].cor}">●</span> ${FASE[f].label} (n=${nFase[f]}): <b>${fmtBR(val, v.dig)} ${v.unidade}</b>`;
+      }).join('<br>');
+      const boxRect = box.node().getBoundingClientRect();
+      const elRect = el.node().getBoundingClientRect();
+      tt.style('opacity', 1)
+        .style('left', `${Math.min(boxRect.left - elRect.left + M.left + x(i) + 10, el.node().clientWidth - 170)}px`)
+        .style('top', `${boxRect.top - elRect.top + 6}px`)
+        .html(`<b>${rotulos[i]}</b><br>${linhas}`);
+    };
+    g.append('rect')
+      .attr('width', iw).attr('height', ih).attr('fill', 'transparent').attr('class', 'touch-overlay')
+      .on('mousemove touchstart', mostraPasso)
+      .on('mouseleave', () => tt.style('opacity', 0));
   }
   legendaFases({ el }).append('span').attr('class', 'legend-note')
     .text('média acumulada; a diferença entre as fases é o que importa');
@@ -268,6 +297,11 @@ export function chartAnomalia(sel, anual, cultura, rotulo = '') {
     .attr('x1', 0).attr('x2', c.iw).attr('y1', y(0)).attr('y2', y(0));
 
   const tt = tooltip(c.el);
+  const conteudoPonto = (r, gr) =>
+    `<b>${r.ano}</b> · ${FASE[gr.fase].label}${r.forte ? ' <b>(forte)</b>' : ''}<br>` +
+    `Anomalia: <b>${r.val > 0 ? '+' : ''}${fmtBR(r.val, 1)}%</b><br>` +
+    `Rendimento: ${fmtBR(r.rend_kg_ha)} kg/ha${linhaRoni(r.roni_pico)}`;
+
   for (const gr of grupos) {
     const cx = x(gr.fase);
     // boxplot quando amostra sustenta (série loess e n>=8)
@@ -286,6 +320,27 @@ export function chartAnomalia(sel, anual, cultura, rotulo = '') {
         .attr('y1', y(q2)).attr('y2', y(q2))
         .attr('stroke', FASE[gr.fase].cor).attr('stroke-width', 2.5);
     }
+
+    // banda de toque atrás dos pontos: toque perto (não exato) acha o mais
+    // próximo em y — os pontos são pequenos e não precisam de mira perfeita
+    if (gr.vals.length) {
+      const step = x.step ? x.step() : c.iw / FASES.length;
+      const bandHalf = Math.min(46, step / 2 - 4);
+      c.g.append('rect')
+        .attr('x', cx - bandHalf).attr('width', bandHalf * 2)
+        .attr('y', 0).attr('height', c.ih)
+        .attr('fill', 'transparent').attr('class', 'touch-overlay')
+        .on('touchstart', (ev) => {
+          const [, my] = pointerXY(ev, c.g.node());
+          const alvo = y.invert(my);
+          const r = gr.vals.reduce((a, b) => Math.abs(b.val - alvo) < Math.abs(a.val - alvo) ? b : a);
+          const [mx, myAbs] = pointerXY(ev, c.el.node());
+          tt.style('opacity', 1)
+            .style('left', `${Math.min(mx + 12, c.w - 160)}px`).style('top', `${myAbs - 10}px`)
+            .html(conteudoPonto(r, gr));
+        });
+    }
+
     // pontos com jitter determinístico
     gr.vals.forEach((r, i) => {
       const jit = ((i * 37) % 21 - 10) * 1.6;
@@ -295,13 +350,11 @@ export function chartAnomalia(sel, anual, cultura, rotulo = '') {
         .attr('fill-opacity', 0.75)
         .attr('stroke', r.forte ? INK.primary : INK.surface)
         .attr('stroke-width', r.forte ? 1.6 : 0.8)
-        .on('mousemove', (ev) => {
-          const [mx, my] = d3.pointer(ev, c.el.node());
+        .on('mousemove touchstart', (ev) => {
+          const [mx, my] = pointerXY(ev, c.el.node());
           tt.style('opacity', 1)
             .style('left', `${Math.min(mx + 12, c.w - 160)}px`).style('top', `${my - 10}px`)
-            .html(`<b>${r.ano}</b> · ${FASE[gr.fase].label}${r.forte ? ' <b>(forte)</b>' : ''}<br>` +
-                  `Anomalia: <b>${r.val > 0 ? '+' : ''}${fmtBR(r.val, 1)}%</b><br>` +
-                  `Rendimento: ${fmtBR(r.rend_kg_ha)} kg/ha${linhaRoni(r.roni_pico)}`);
+            .html(conteudoPonto(r, gr));
         })
         .on('mouseleave', () => tt.style('opacity', 0));
     });
@@ -357,15 +410,23 @@ export function chartRendimento(sel, anual, cultura, rotulo = '') {
       .attr('r', r.forte ? 5 : 3.5)
       .attr('fill', FASE[r.fase]?.cor ?? INK.muted)
       .attr('stroke', r.forte ? INK.primary : '#fff')
-      .attr('stroke-width', r.forte ? 1.6 : 0.8)
-      .on('mousemove', (ev) => {
-        const [mx, my] = d3.pointer(ev, c.el.node());
-        tt.style('opacity', 1)
-          .style('left', `${Math.min(mx + 12, c.w - 170)}px`).style('top', `${my - 10}px`)
-          .html(`<b>${r.ano}</b> · ${FASE[r.fase]?.label ?? '–'}${r.forte ? ' <b>(forte)</b>' : ''}<br>` +
-                `Rendimento: <b>${fmtBR(r.rend_kg_ha)} kg/ha</b>${linhaRoni(r.roni_pico)}`);
-      })
-      .on('mouseleave', () => tt.style('opacity', 0));
+      .attr('stroke-width', r.forte ? 1.6 : 0.8);
   }
+
+  // overlay por cima: acha o ano mais próximo do toque/mouse — alvo grande,
+  // não depende de acertar o ponto de 3,5-5px (essencial no toque).
+  c.g.append('rect')
+    .attr('width', c.iw).attr('height', c.ih).attr('fill', 'transparent').attr('class', 'touch-overlay')
+    .on('mousemove touchstart', (ev) => {
+      const [mx, my] = pointerXY(ev, c.g.node());
+      const anoAlvo = x.invert(mx);
+      const r = dados.reduce((a, b) => Math.abs(b.ano - anoAlvo) < Math.abs(a.ano - anoAlvo) ? b : a);
+      tt.style('opacity', 1)
+        .style('left', `${Math.min(mx + MARGIN.left + 12, c.w - 170)}px`)
+        .style('top', `${my + MARGIN.top - 10}px`)
+        .html(`<b>${r.ano}</b> · ${FASE[r.fase]?.label ?? '–'}${r.forte ? ' <b>(forte)</b>' : ''}<br>` +
+              `Rendimento: <b>${fmtBR(r.rend_kg_ha)} kg/ha</b>${linhaRoni(r.roni_pico)}`);
+    })
+    .on('mouseleave', () => tt.style('opacity', 0));
   legendaFases(c);
 }

@@ -2,7 +2,7 @@
 
 import { CULTURAS, debounce } from './config.js';
 import { loadBoot, loadMunicipio, loadEstado, janelaUf, resumo } from './data.js';
-import { map, initInteracao, selecionarNoMapa } from './map.js';
+import { map, initInteracao, selecionarNoMapa, valorFonteAtiva } from './map.js';
 import { initSidebar } from './sidebar.js';
 import { initBusca } from './busca.js';
 import { chartClimatologia, chartAcumulados, chartAnomalia, chartRendimento } from './charts.js';
@@ -28,10 +28,19 @@ function culturaDefault(anual) {
   return 'soja';
 }
 
-async function onSelect(geocod, nome, uf) {
+async function onSelect(geocod, nome, uf, previa = null) {
   $('hover-label').textContent = `${nome} · ${uf}`;
   $('hover-label').classList.add('active');
   $('muni-title').textContent = `${nome} · ${uf}`;
+  // prévia instantânea do indicador ativo (sem esperar rede) — essencial no toque,
+  // que não tem hover para mostrar isso antes de tocar.
+  const indEl = $('muni-indicador');
+  if (previa) {
+    indEl.textContent = `${previa.label}: ${previa.valorFmt}`;
+    indEl.hidden = false;
+  } else {
+    indEl.hidden = true;
+  }
   $('placeholder-panel').hidden = true;
   $('charts').hidden = false;
 
@@ -97,6 +106,7 @@ function onDeselect() {
   $('hover-label').textContent = 'Passe o mouse sobre um município; clique para fixar e ver os gráficos';
   $('hover-label').classList.remove('active');
   $('muni-title').textContent = 'Nenhum município selecionado';
+  $('muni-indicador').hidden = true;
   $('muni-actions').hidden = true;
   $('charts').hidden = true;
   $('placeholder-panel').hidden = false;
@@ -118,11 +128,11 @@ window.addEventListener('resize', debounce(rerenderCharts, 200));
   initBusca((geocod, nome, uf) => {
     const r = resumo.get(geocod);
     selecionarNoMapa(geocod, r?.lon, r?.lat);
-    onSelect(geocod, nome, uf);
+    onSelect(geocod, nome, uf, valorFonteAtiva(geocod));
   });
 
   // deep-link: ?muni=<geocod> abre o município direto (link compartilhável)
   const geocod = new URLSearchParams(location.search).get('muni');
   const r = geocod && resumo.get(geocod);
-  if (r) onSelect(geocod, r.nome, r.uf);
+  if (r) onSelect(geocod, r.nome, r.uf, valorFonteAtiva(geocod));
 })();

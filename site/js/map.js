@@ -71,6 +71,9 @@ export const map = new maplibregl.Map({
   bounds: [[-74, -34], [-28, 6]],
   fitBoundsOptions: { padding: 15 },
   attributionControl: false,
+  // no mobile o mapa fica empilhado sobre conteúdo rolável — sem isso, arrastar
+  // com 1 dedo move o mapa em vez de rolar a página até os gráficos.
+  cooperativeGestures: window.innerWidth <= 800,
 });
 
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
@@ -97,6 +100,14 @@ function fmtValor(v, unidade) {
   if (v == null || Number.isNaN(v)) return 'sem dados';
   const sinal = v > 0 ? '+' : '';
   return `${sinal}${v.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}${unidade}`;
+}
+
+// valor do indicador ativo do choropleth para um município — usado na prévia
+// instantânea ao selecionar (clique ou busca), sem esperar dados de rede.
+export function valorFonteAtiva(codeMuni) {
+  if (!fonteAtiva) return null;
+  const v = fonteAtiva.values.get(String(codeMuni));
+  return { label: fonteAtiva.label, valorFmt: fmtValor(v, fonteAtiva.unidade) };
 }
 
 // ---------------------------------------------------------------- choropleth
@@ -186,7 +197,7 @@ export function initInteracao(onSelect, onDeselect) {
     selectedId = feat.id;
     map.setFeatureState({ source: 'municipios', sourceLayer: 'mun', id: selectedId }, { selected: true });
     const { name_muni, abbrev_state, code_muni } = feat.properties;
-    onSelect(String(code_muni), name_muni, abbrev_state);
+    onSelect(String(code_muni), name_muni, abbrev_state, valorFonteAtiva(code_muni));
   });
 
   map.on('click', (e) => {

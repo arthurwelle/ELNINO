@@ -99,6 +99,7 @@ body {
   top: calc(100% + 4px);
   right: 0;
   width: 260px;
+  max-width: calc(100vw - 24px);
   max-height: 280px;
   overflow-y: auto;
   background: var(--surface);
@@ -145,11 +146,11 @@ body {
 #sidebar.collapsed { width: 28px; bottom: auto; }
 #sidebar.collapsed #sb-content { display: none; }
 #sb-toggle {
-  flex: 0 0 28px;
+  flex: 0 0 32px;
   border: none;
   background: var(--accent);
   color: var(--on-accent);
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
   border-radius: 7px 0 0 7px;
 }
@@ -216,7 +217,13 @@ select {
   cursor: help;
   position: relative;
 }
-.info-i:hover, .info-i:focus { background: var(--accent); color: var(--on-accent); }
+/* alvo de toque efetivo maior sem mudar o visual do círculo */
+.info-i::before {
+  content: '';
+  position: absolute;
+  inset: -9px;
+}
+.info-i:hover, .info-i:focus, .info-i.aberto { background: var(--accent); color: var(--on-accent); }
 .info-tip {
   display: none;
   position: fixed; /* escapa do overflow da sidebar; JS posiciona */
@@ -260,6 +267,11 @@ select {
 #muni-title {
   font-family: var(--font-display);
   font-size: 15px; font-weight: bold; color: var(--accent);
+}
+#muni-indicador {
+  font-size: 12px; color: var(--text-2);
+  padding: 2px 8px; border-radius: 10px;
+  background: var(--surface-2); border: 1px solid var(--border);
 }
 #muni-actions { display: flex; gap: 8px; }
 .dl-btn {
@@ -329,7 +341,8 @@ select {
 .acum-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .acum-ctl { font-size: 11.5px; color: var(--text-2); }
 .acum-facets { display: flex; gap: 6px; margin-top: 6px; }
-.acum-facet { min-width: 0; }
+.acum-facets.empilha { flex-direction: column; }
+.acum-facet { min-width: 0; flex-shrink: 0; }
 .acum-facet-title { font-size: 10.5px; color: var(--text-2); text-align: center; line-height: 1.25; min-height: 26px; }
 .acum-unit { color: var(--muted); }
 .tt-roni { color: var(--muted); }
@@ -413,6 +426,13 @@ select {
   #map-panel { flex: 0 0 55vh; min-height: 380px; }
   #right-panel { flex: 1 1 auto; overflow: visible; }
   #hover-label { display: none; }
-  #busca-input { width: 120px; }
-  #busca-input:focus { width: 150px; }
+  #app-header { flex-wrap: wrap; row-gap: 6px; }
+  #busca-input { width: 150px; }
+  #busca-input:focus { width: 180px; }
+}
+
+@media (max-width: 420px) {
+  #app-header h1 { font-size: 15px; white-space: normal; }
+  #busca-input { width: 130px; }
+  #busca-input:focus { width: 160px; }
 }

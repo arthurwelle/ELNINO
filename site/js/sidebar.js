@@ -108,7 +108,7 @@ export function initSidebar() {
   selInd.addEventListener('change', atualizaDesc);
   document.getElementById('exp-aplicar').addEventListener('click', aplicarExplorador);
 
-  // tooltips "i": position fixed calculada no hover (escapa do overflow da sidebar)
+  // tooltips "i": position fixed calculada no hover/toque (escapa do overflow da sidebar)
   document.querySelectorAll('.info-i').forEach((icone) => {
     const tip = icone.querySelector('.info-tip');
     if (!tip) return;
@@ -125,6 +125,19 @@ export function initSidebar() {
     };
     icone.addEventListener('mouseenter', posiciona);
     icone.addEventListener('focus', posiciona);
+    // touch/click: :hover não é confiável no toque — alterna explicitamente.
+    // preventDefault evita que o navegador encaminhe o clique pro <input> do
+    // <label> pai (.sb-row) — sem isso, tocar o "i" também trocava o rádio.
+    icone.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const jaAberto = icone.classList.contains('aberto');
+      document.querySelectorAll('.info-i.aberto').forEach((el) => el.classList.remove('aberto'));
+      if (!jaAberto) { icone.classList.add('aberto'); posiciona(); }
+    });
+  });
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.info-i.aberto').forEach((el) => el.classList.remove('aberto'));
   });
 
   // colapsar/expandir
@@ -134,6 +147,13 @@ export function initSidebar() {
     btn.textContent = fechado ? '»' : '«';
     btn.title = fechado ? 'Abrir painel' : 'Recolher painel';
   });
+
+  // mobile: sidebar comeca recolhida (mapa visivel primeiro; usuario abre por opcao)
+  if (window.innerWidth <= 800) {
+    sb.classList.add('collapsed');
+    btn.textContent = '»';
+    btn.title = 'Abrir painel';
+  }
 
   // choropleth inicial: pinta quando o mapa estiver pronto (UI já montada acima)
   const pintaInicial = () => aplicarMetrica(METRICAS.find((m) => m.default));
