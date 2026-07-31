@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Metodologia — El Niño e a Agricultura Brasileira</title>
+  <title>Metodologia - El Niño e a Agricultura Brasileira</title>
   <link rel="stylesheet" href="./css/style.css">
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
@@ -40,7 +40,7 @@
     <table>
       <tr><th>Dado</th><th>Fonte</th><th>Período</th></tr>
       <tr><td>Meteorologia diária (chuva, temperaturas, radiação, vento, umidade)</td>
-          <td>Base Xavier v3.2.4 — dados em grade interpolados no centroide de cada
+          <td><a href="https://github.com/AlexandreCandidoXavier/BR-DWGD">Base Xavier v3.2.4</a> - dados em grade interpolados no centroide de cada
               município (centroides da base contínua do IBGE 1:250k, 2023). Exportação:
               Daniel Victoria (Embrapa), jun/2026</td>
           <td>1980–2025</td></tr>
@@ -48,16 +48,18 @@
           <td>Derivados da base Xavier</td>
           <td>1980–2025</td></tr>
       <tr><td>Produção agrícola municipal (área, produção, valor)</td>
-          <td>IBGE — Pesquisa Agrícola Municipal (PAM)</td>
+          <td><a href="https://www.ibge.gov.br/estatisticas/economicas/agricultura-e-pecuaria/9117-producao-agricola-municipal-culturas-temporarias-e-permanentes.html">IBGE - Pesquisa Agrícola Municipal (PAM)</a></td>
           <td>1974–2024</td></tr>
       <tr><td>Calendário de plantio (mês de início por UF e cultura)</td>
-          <td>CONAB — define a janela ENSO de cada cultura</td>
-          <td>—</td></tr>
-      <tr><td>Índice RONI (Relative Oceanic Niño Index) — classificação ENSO</td>
-          <td>NOAA / Climate Prediction Center</td>
+          <td><a href="https://www.gov.br/conab/pt-br/acesso-a-informacao/institucional/publicacoes/outras-publicacoes/calendario-agricola-plantio-e-colheita">CONAB - Calendário Agrícola</a> -
+              define a janela ENSO de cada cultura
+              (<a href="./docs/conab_calendario_plantio_colheita_2022.pdf">PDF usado, jun/2022</a>)</td>
+          <td>2022</td></tr>
+      <tr><td>Índice RONI (Relative Oceanic Niño Index) - classificação ENSO</td>
+          <td><a href="https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso/roni/">NOAA / Climate Prediction Center</a></td>
           <td>1950–presente</td></tr>
-      <tr><td>Índice ONI (Oceanic Niño Index) — comparação</td>
-          <td>NOAA / Climate Prediction Center (<code>oni.ascii.txt</code>)</td>
+      <tr><td>Índice ONI (Oceanic Niño Index) - comparação</td>
+          <td><a href="https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt">NOAA / Climate Prediction Center</a> (<code>oni.ascii.txt</code>)</td>
           <td>1950–presente</td></tr>
     </table>
 
@@ -65,7 +67,7 @@
     <p>Usamos o <strong>RONI</strong> (Relative Oceanic Niño Index), o índice que a NOAA
        adotou em 2026 para monitorar o ENSO. Como o ONI tradicional, ele mede a anomalia
        de temperatura da superfície do mar na região Niño 3.4 do Pacífico em médias
-       móveis de 3 meses — mas <strong>desconta o aquecimento médio de todo o cinturão
+       móveis de 3 meses - mas <strong>desconta o aquecimento médio de todo o cinturão
        tropical</strong>. Isso corrige um problema do ONI: com o aquecimento global, a
        base de 30 anos ficou defasada e passou a classificar como El Niño episódios
        relativamente fracos. O RONI ≥ +0,5 °C conta como El Niño; ≤ −0,5 °C como La Niña;
@@ -76,9 +78,9 @@
        classificação das fases usa o RONI.</p>
     <h3>Convenção de ano-safra</h3>
     <p>A safra de verão brasileira é plantada de setembro a dezembro e colhida no ano
-       seguinte — e o pico do El Niño ocorre justamente na virada do ano. Por isso cada
+       seguinte - e o pico do El Niño ocorre justamente na virada do ano. Por isso cada
        <strong>ano-safra t</strong> (safra colhida no ano t, que é como a PAM registra)
-       recebe a fase RONI <strong>predominante entre outubro de t−1 e março de t</strong> —
+       recebe a fase RONI <strong>predominante entre outubro de t−1 e março de t</strong> -
        a janela de plantio e desenvolvimento da lavoura. Em caso de empate, decide o
        sinal do RONI de pico.</p>
     <h3>Eventos fortes</h3>
@@ -96,7 +98,7 @@
        janela nov–dez–jan.</p>
     <ul>
       <li><strong>Milho (total)</strong>: usa a janela da safra dominante do estado
-          (mapa acima) — 1ª ou 2ª safra.</li>
+          (mapa abaixo) - 1ª ou 2ª safra.</li>
       <li><strong>Feijão</strong>: usa a data da 1ª safra (a PAM não separa as safras do
           feijão).</li>
       <li><strong>Cana-de-açúcar</strong>: não consta no calendário CONAB (é semiperene);
@@ -105,7 +107,7 @@
           no Brasil.</li>
     </ul>
     <p class="nota">Assim, uma mesma safra pode ser El Niño para a soja (nov–dez–jan) e
-       La Niña para o trigo (jun–jul–ago) num mesmo estado — porque os períodos críticos
+       La Niña para o trigo (jun–jul–ago) num mesmo estado - porque os períodos críticos
        são diferentes. Cada janela de 3 meses é um valor RONI; os limiares ±0,5 e o
        "forte" (|RONI| ≥ 1,5) valem igual. A janela usada aparece ao lado do seletor de
        cultura no painel.</p>
@@ -125,7 +127,7 @@
       <li><strong>SPI</strong> (Standardized Precipitation Index): chuva do período
           comparada ao histórico do próprio município, em desvios-padrão. 0 = normal;
           −1 = seco; −2 = seca severa; valores positivos = úmido.</li>
-      <li><strong>SPEI</strong>: como o SPI, mas desconta a evapotranspiração potencial —
+      <li><strong>SPEI</strong>: como o SPI, mas desconta a evapotranspiração potencial -
           captura também o efeito do calor. As escalas 1/3/6/12 acumulam 1, 3, 6 ou 12
           meses. <strong>SPEI-6 medido em março cobre exatamente a janela out–mar da
           safra</strong>, por isso é o índice de referência do mapa.</li>
@@ -133,7 +135,7 @@
       <li><strong>Veranico</strong>: maior sequência de dias consecutivos com chuva
           &lt; 1 mm no período (mês ou janela out–mar). Estiagens dentro da estação
           chuvosa são um dos principais mecanismos de perda de produtividade.</li>
-      <li><strong>Dias de calor extremo</strong>: dias com máxima &gt; 34 °C — limiar
+      <li><strong>Dias de calor extremo</strong>: dias com máxima &gt; 34 °C - limiar
           usual de estresse térmico na floração de culturas como soja e milho.</li>
       <li><strong>Início das chuvas (onset)</strong>: primeiro dia, a partir de 1º de
           setembro, com ≥ 20 mm acumulados em 3 dias e sem estiagem &gt; 10 dias nos 20
@@ -146,7 +148,7 @@
           de 10 °C. Mede o acúmulo de calor disponível para o desenvolvimento das
           culturas.</li>
       <li><strong>Radiação acumulada</strong>: soma da radiação solar global (MJ/m²) no
-          período — energia disponível para a fotossíntese.</li>
+          período - energia disponível para a fotossíntese.</li>
     </ul>
     <p>O gráfico de <strong>acumulados de 4 meses</strong> soma chuva, soma térmica e
        radiação numa janela de quatro meses a partir do mês escolhido (a janela pode
@@ -167,7 +169,7 @@
        heterogêneas.</p>
     <p>Nos gráficos de produtividade, além do município mostramos o valor do
        <strong>estado (UF)</strong>: o rendimento agregado da unidade federativa
-       (soma da produção ÷ soma da área colhida — portanto ponderado pela área de cada
+       (soma da produção ÷ soma da área colhida, portanto ponderado pela área de cada
        município) e sua anomalia média por fase. Serve de referência regional para
        situar o município.</p>
 
@@ -175,7 +177,7 @@
     <p>A partir de 2003 a PAM separa o milho em <strong>1ª safra</strong> (verão, sensível
        ao ENSO como as demais culturas de verão) e <strong>2ª safra</strong> ("safrinha",
        plantada após a soja e colhida no meio do ano). O painel do município oferece as
-       três séries — milho total (desde 1974), 1ª e 2ª safra (desde 2003). No mapa, como a
+       três séries - milho total (desde 1974), 1ª e 2ª safra (desde 2003). No mapa, como a
        cor é única por município, cada estado exibe a <strong>safra de maior produção no
        estado</strong> (safra dominante):</p>
     <div class="milho-leg">
@@ -190,15 +192,16 @@
        média histórica de todos os anos. A escala de cores é divergente e simétrica
        (percentil 95 dos valores absolutos), com marrom = mais seco/pior e
        verde-azulado = mais úmido/melhor.</p>
+    <p><img src="./img/mapa-indicador.png" alt="Mapa do Brasil colorido por indicador climático, com o painel de seleção de indicadores à esquerda" style="max-width:100%;border-radius:8px;border:1px solid var(--border);"></p>
 
     <h2>6. Limitações</h2>
     <ul>
-      <li>Clima interpolado no centroide municipal — municípios muito extensos podem ter
+      <li>Clima interpolado no centroide municipal - municípios muito extensos podem ter
           variação interna relevante.</li>
       <li>Fernando de Noronha não tem série climática na base; 5 municípios criados
           após 2013 não têm polígono na malha usada.</li>
       <li>A PAM registra ano civil; a convenção de ano-safra usada aqui é uma
-          aproximação — para o milho segunda safra (colhido no meio do ano) a
+          aproximação - feijão por exemplo que tem segunda safra a
           correspondência é menos direta.</li>
       <li>Amostras pequenas: mesmo com 45 safras, cada fase tem ~10–18 anos; um único
           ano atípico pesa. Os grupos por fase descrevem tendência histórica, não
@@ -212,6 +215,11 @@
        (<code>scripts/01_oni.R</code> a <code>07_estado.R</code>), partindo dos dados
        brutos citados na seção 1. O site é 100% estático: os mesmos arquivos CSV exibidos
        nos gráficos são os oferecidos no botão de download de cada município.</p>
+
+
+
+    <h2>8. Referências</h2>
+       Xavier, A. C., Scanlon, B. R., King, C. W., & Alves, A. I. (2022). New improved Brazilian daily weather gridded data (1961–2020). International Journal of Climatology, 42(16), 8390– 8404. https://doi.org/10.1002/joc.7731
 
     <p class="volta"><a href="./index.html">← Voltar ao mapa</a></p>
   </main>
@@ -244,11 +252,11 @@
       for (const [key] of COLS) {
         const c = m.get(uf)[key];
         const td = tr.append('td');
-        if (!c) { td.attr('class', 'vazio').text('—'); continue; }
+        if (!c) { td.attr('class', 'vazio').text('-'); continue; }
         const marca = c.origem === 'moda' ? '†' : c.origem === 'padrao' ? '*' : '';
         const plant = c.plantio ? `${c.plantio}→` : '';
         td.attr('class', c.off === -1 ? 'ano-ant' : 'mesmo')
-          .attr('title', `plantio ${c.plantio || '—'} · ${c.off === -1
+          .attr('title', `plantio ${c.plantio || '-'} · ${c.off === -1
             ? 'ENSO do ano anterior à colheita' : 'ENSO do mesmo ano da colheita'}`)
           .text(`${plant}${c.label}${marca}`);
       }
