@@ -60,11 +60,62 @@ if (any(c("milho1", "milho2") %in% pam$cultura)) {
   pam[, safra_dominante := NA_integer_]
 }
 
-# --- fase ENSO por janela especifica da cultura (no ano da colheita) --------
+# --- tabela de janelas ENSO por (uf, cultura) a partir do calendario CONAB --
+conab <- fread(file.path(DIR_DATA, "CONAB", "calendario_plantio_conab.csv"),
+               sep = ";", encoding = "UTF-8", na.strings = "")
+conab[, cultura_site := fcase(
+  cultura == "Soja", "soja",
+  cultura == "Milho 1ª Safra", "milho1",
+  cultura == "Milho 2ª Safra", "milho2",
+  cultura == "Arroz", "arroz",
+  cultura == "Feijão 1ª Safra", "feijao",
+  cultura == "Trigo", "trigo")]
+conab <- conab[!is.na(cultura_site) & !is.na(mes_inicio_plantio)]
+conab[, P := MESES_PT[tolower(mes_inicio_plantio)]]
+
+# moda nacional do mes de plantio por cultura (fallback UF sem dado)
+moda <- function(x) { u <- unique(x); u[which.max(tabulate(match(x, u)))] }
+moda_cult <- conab[, .(P_moda = moda(P)), by = cultura_site]
+
+ufs <- unname(UF_COD)
+culturas_janela <- c("soja", "milho1", "milho2", "arroz", "feijao", "trigo")
+grade <- CJ(uf = ufs, cultura = culturas_janela, unique = TRUE)
+grade <- merge(grade, conab[, .(uf, cultura = cultura_site, P)],
+               by = c("uf", "cultura"), all.x = TRUE)
+grade <- merge(grade, moda_cult, by.x = "cultura", by.y = "cultura_site", all.x = TRUE)
+grade[, origem := fifelse(is.na(P), "moda", "conab")]  # antes do fallback
+grade[is.na(P), P := P_moda]
+grade[, mes_plantio := MESES_LAB[P]]
+grade[, c("mes_centro", "ano_offset", "janela_label") := janela_from_plantio(P)]
+
+# milho total: segue a safra dominante da UF (usa a janela de milho1 ou milho2)
+milho_tot <- merge(unique(pam[, .(uf, safra_dominante)]),
+                   grade[cultura %in% c("milho1", "milho2")],
+                   by.x = "uf", by.y = "uf", allow.cartesian = TRUE)
+milho_tot <- milho_tot[(safra_dominante == 2L & cultura == "milho2") |
+                       ((is.na(safra_dominante) | safra_dominante == 1L) &
+                          cultura == "milho1")]
+milho_tot[, cultura := "milho"]
+milho_tot <- milho_tot[, .(uf, cultura, P, mes_plantio, mes_centro, ano_offset,
+                           janela_label, origem)]
+
+# cana: sem CONAB -> janela fixa DJF (dez-jan-fev)
+cana <- data.table(uf = ufs, cultura = "cana", P = NA_integer_, mes_plantio = NA_character_,
+                   mes_centro = 1L, ano_offset = 0L,
+                   janela_label = "dez–jan–fev", origem = "padrao")
+
+janelas <- rbind(grade, milho_tot, cana, fill = TRUE)
+fwrite_site(janelas[, .(uf, cultura, mes_plantio, mes_centro, ano_offset,
+                        janela_label, origem)],
+            file.path(DIR_SITE_DATA, "janela_cultura_uf.csv"))
+
+# --- fase ENSO por janela (uf, cultura), no ano-safra + ano_offset ----------
 oni <- fread(file.path(DIR_SITE_DATA, "oni.csv"))  # ano, mes, roni, oni, fase
-pam[, mes_janela := janela_mes(cultura, safra_dominante)]
+pam <- merge(pam, janelas[, .(uf, cultura, mes_centro, ano_offset)],
+             by = c("uf", "cultura"), all.x = TRUE)
+pam[, ano_oni := ano + ano_offset]
 pam <- merge(pam, oni[, .(ano, mes, roni, fase)],
-             by.x = c("ano", "mes_janela"), by.y = c("ano", "mes"), all.x = TRUE)
+             by.x = c("ano_oni", "mes_centro"), by.y = c("ano", "mes"), all.x = TRUE)
 pam[, `:=`(roni_pico = round(roni, 2),
            forte = as.integer(abs(roni) >= ONI_FORTE))]
 

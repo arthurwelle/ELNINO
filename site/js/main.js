@@ -1,7 +1,7 @@
 // Orquestração: boot, seleção de município, seletores, download.
 
-import { CULTURAS, debounce, janelaCultura } from './config.js';
-import { loadBoot, loadMunicipio, loadEstado, milhoSafraUf } from './data.js';
+import { CULTURAS, debounce } from './config.js';
+import { loadBoot, loadMunicipio, loadEstado, janelaUf } from './data.js';
 import { map, initInteracao } from './map.js';
 import { initSidebar } from './sidebar.js';
 import { chartClimatologia, chartAcumulados, chartAnomalia, chartRendimento } from './charts.js';
@@ -74,9 +74,9 @@ async function onSelect(geocod, nome, uf) {
 function renderPam() {
   if (!atual?.anual) return;
   const cult = selCultura.value;
-  // janela ENSO analisada para a cultura (muda a cada seleção)
-  const janela = janelaCultura(cult, atual.uf ? milhoSafraUf.get(atual.uf) : undefined);
-  $('cultura-janela').textContent = `Janela ENSO: ${janela}`;
+  // janela ENSO analisada para a cultura+UF (muda a cada seleção)
+  const janela = janelaUf.get(`${atual.uf}|${cult}`);
+  $('cultura-janela').textContent = janela ? `Janela ENSO: ${janela}` : '';
   chartAnomalia('#chart-anom', atual.anual, cult);
   chartRendimento('#chart-rend', atual.anual, cult);
 

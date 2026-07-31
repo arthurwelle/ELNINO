@@ -21,18 +21,14 @@ setorder(agg, uf, cultura, ano)
 agg[, c("anom_rend_pct", "delta_rend_pct") :=
       calc_metrica_rendimento(ano, rend_kg_ha), by = .(uf, cultura)]
 
-# fase ENSO por janela especifica da cultura (milho total segue a UF dominante)
-dom_path <- file.path(DIR_SITE_DATA, "milho_safra_uf.csv")  # gerado pelo 03
-if (file.exists(dom_path)) {
-  dom <- fread(dom_path)
-  agg <- merge(agg, dom, by = "uf", all.x = TRUE)
-} else {
-  agg[, safra_dominante := NA_integer_]
-}
+# fase ENSO por janela CONAB (uf, cultura) — tabela gerada pelo 03
+janelas <- fread(file.path(DIR_SITE_DATA, "janela_cultura_uf.csv"))
 oni <- fread(file.path(DIR_SITE_DATA, "oni.csv"))
-agg[, mes_janela := janela_mes(cultura, safra_dominante)]
+agg <- merge(agg, janelas[, .(uf, cultura, mes_centro, ano_offset)],
+             by = c("uf", "cultura"), all.x = TRUE)
+agg[, ano_oni := ano + ano_offset]
 agg <- merge(agg, oni[, .(ano, mes, roni, fase)],
-             by.x = c("ano", "mes_janela"), by.y = c("ano", "mes"), all.x = TRUE)
+             by.x = c("ano_oni", "mes_centro"), by.y = c("ano", "mes"), all.x = TRUE)
 agg[, `:=`(roni_pico = round(roni, 2),
            forte = as.integer(abs(roni) >= ONI_FORTE))]
 

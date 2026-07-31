@@ -53,16 +53,26 @@ UF_COD <- c("11"="RO","12"="AC","13"="AM","14"="RR","15"="PA","16"="AP","17"="TO
             "28"="SE","29"="BA","31"="MG","32"="ES","33"="RJ","35"="SP","41"="PR",
             "42"="SC","43"="RS","50"="MS","51"="MT","52"="GO","53"="DF")
 
-# Janela ENSO por cultura (mes central do trimestre RONI, no ano da colheita):
-# DJF=1 (1a safra de verao), SON=10 (trigo, inverno), MAM=4 (milho 2a safra/safrinha).
-# milho total segue a safra dominante da UF (1->DJF, 2->MAM).
-janela_mes <- function(cultura, safra_dominante_uf = NA_integer_) {
-  fifelse(cultura == "trigo", 10L,
-   fifelse(cultura == "milho2", 4L,
-    fifelse(cultura == "milho1", 1L,
-     fifelse(cultura == "milho",
-             fifelse(!is.na(safra_dominante_uf) & safra_dominante_uf == 2L, 4L, 1L),
-             1L))))  # soja, arroz, feijao, cana -> DJF
+# Janela ENSO data-driven (calendario CONAB): janela = 3 meses a partir do mes de
+# plantio + 1. O centro (plantio+2) casa com um trimestre RONI. Atribuicao ao ano-safra:
+# plantio jul-dez -> ciclo do ano t-1; jan-jun -> ano t.
+MESES_PT <- c(jan=1L, fev=2L, mar=3L, abr=4L, mai=5L, jun=6L,
+              jul=7L, ago=8L, set=9L, out=10L, nov=11L, dez=12L)
+MESES_LAB <- c("jan","fev","mar","abr","mai","jun",
+               "jul","ago","set","out","nov","dez")
+
+# dado mes de plantio P (1-12), retorna data.table(mes_centro, ano_offset, janela_label)
+# ano_offset: colheita no ano seguinte (plantio out-dez) -> ciclo do ano t-1; caso
+# contrario (plantio jan-set, colheita no mesmo ano) -> ano t.
+janela_from_plantio <- function(P) {
+  p_off <- fifelse(P >= 10L, -1L, 0L)
+  cidx  <- P + 2L
+  bump  <- fifelse(cidx > 12L, 1L, 0L)
+  cidx  <- fifelse(cidx > 12L, cidx - 12L, cidx)
+  wrap  <- function(m) ((m - 1L) %% 12L) + 1L
+  lab   <- paste(MESES_LAB[wrap(P + 1L)], MESES_LAB[wrap(P + 2L)],
+                 MESES_LAB[wrap(P + 3L)], sep = "–")
+  data.table(mes_centro = cidx, ano_offset = p_off + bump, janela_label = lab)
 }
 
 # --- helpers ----------------------------------------------------------------

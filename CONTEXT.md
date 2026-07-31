@@ -17,9 +17,10 @@ Termos canônicos do projeto. Somente linguagem de domínio; nada de implementa�
 - **Evento forte**: safra cujo |RONI de pico| ≥ 1,5 °C (ex.: 1983, 1998, 2016 EN;
   1989, 2000, 2008, 2011, 2021 LN).
 - **Janela ENSO por cultura**: nos gráficos de produtividade, a fase de cada cultura vem
-  do trimestre RONI do seu período crítico, no ano da colheita — DJF (dez–fev) para 1ª
-  safra de verão, SON (set–nov) para trigo, MAM (mar–mai) para milho 2ª safra; milho
-  total segue a safra dominante da UF. O clima segue a janela geral out–mar.
+  de uma janela de 3 meses derivada do **calendário de plantio da CONAB** (por UF e
+  cultura): 3 meses a partir do mês de plantio + 1, no ano da colheita. Milho total segue
+  a safra dominante da UF; feijão usa a 1ª safra; cana (sem CONAB) usa dez–jan–fev; UF sem
+  dado usa a moda nacional da cultura. O clima segue a janela geral out–mar.
 
 ## Agricultura (PAM/IBGE)
 

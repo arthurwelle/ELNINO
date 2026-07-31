@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Metodologia — El Niño e a Agricultura Brasileira</title>
   <link rel="stylesheet" href="./css/style.css">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
     body { overflow: auto; height: auto; }
     #milho-map { max-width: 460px; margin: 10px auto; }
@@ -12,6 +13,16 @@
     .milho-leg { display: flex; gap: 18px; font-size: 13px; margin: 6px 0; }
     .milho-leg span { display: inline-flex; align-items: center; gap: 6px; }
     .milho-leg i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+    #janela-wrap { overflow-x: auto; margin: 10px 0; }
+    #janela-tabela { font-size: 12px; }
+    #janela-tabela th, #janela-tabela td { padding: 3px 7px; white-space: nowrap; text-align: center; }
+    #janela-tabela th:first-child, #janela-tabela td:first-child {
+      text-align: left; font-weight: bold; position: sticky; left: 0;
+      background: var(--surface-2);
+    }
+    #janela-tabela td.ano-ant { color: var(--fase-en); }
+    #janela-tabela td.mesmo { color: var(--text-2); }
+    #janela-tabela td.vazio { color: var(--muted); }
   </style>
 </head>
 <body>
@@ -39,6 +50,9 @@
       <tr><td>Produção agrícola municipal (área, produção, valor)</td>
           <td>IBGE — Pesquisa Agrícola Municipal (PAM)</td>
           <td>1974–2024</td></tr>
+      <tr><td>Calendário de plantio (mês de início por UF e cultura)</td>
+          <td>CONAB — define a janela ENSO de cada cultura</td>
+          <td>—</td></tr>
       <tr><td>Índice RONI (Relative Oceanic Niño Index) — classificação ENSO</td>
           <td>NOAA / Climate Prediction Center</td>
           <td>1950–presente</td></tr>
@@ -75,23 +89,36 @@
 
     <h3>Janela ENSO por cultura (gráficos de produtividade)</h3>
     <p>A janela de 6 meses acima classifica o <strong>clima</strong> da safra. Já os
-       gráficos de <strong>produtividade</strong> usam, para cada cultura, o trimestre
-       ENSO do período crítico daquela lavoura, no ano da colheita:</p>
-    <table>
-      <tr><th>Cultura</th><th>Janela ENSO</th><th>Motivo</th></tr>
-      <tr><td>Soja, milho 1ª safra, arroz, feijão, cana</td><td>dez–jan–fev (DJF)</td>
-          <td>pleno desenvolvimento da safra de verão</td></tr>
-      <tr><td>Trigo</td><td>set–out–nov (SON)</td>
-          <td>enchimento de grãos da safra de inverno</td></tr>
-      <tr><td>Milho 2ª safra (safrinha)</td><td>mar–abr–mai (MAM)</td>
-          <td>desenvolvimento após a colheita da soja</td></tr>
-      <tr><td>Milho (total)</td><td>conforme a UF</td>
-          <td>segue a safra dominante do estado (mapa acima): 1ª → DJF, 2ª → MAM</td></tr>
-    </table>
-    <p class="nota">Assim, uma mesma safra pode ser El Niño para a soja (DJF) e La Niña
-       para o trigo (SON) num mesmo estado — porque os períodos críticos são diferentes.
-       Cada trimestre é um valor RONI (média de 3 meses); os limiares ±0,5 e o "forte"
-       (|RONI| ≥ 1,5) valem igual.</p>
+       gráficos de <strong>produtividade</strong> usam uma janela ENSO específica de cada
+       cultura em cada estado, derivada do <strong>calendário de plantio da CONAB</strong>:
+       a janela cobre os 3 meses a partir do <strong>mês de plantio + 1</strong> (fase de
+       desenvolvimento da lavoura), no ano da colheita. Ex.: plantio em outubro →
+       janela nov–dez–jan.</p>
+    <ul>
+      <li><strong>Milho (total)</strong>: usa a janela da safra dominante do estado
+          (mapa acima) — 1ª ou 2ª safra.</li>
+      <li><strong>Feijão</strong>: usa a data da 1ª safra (a PAM não separa as safras do
+          feijão).</li>
+      <li><strong>Cana-de-açúcar</strong>: não consta no calendário CONAB (é semiperene);
+          usa a janela padrão dez–jan–fev.</li>
+      <li>Estado sem data para a cultura: usa o mês de plantio mais comum daquela cultura
+          no Brasil.</li>
+    </ul>
+    <p class="nota">Assim, uma mesma safra pode ser El Niño para a soja (nov–dez–jan) e
+       La Niña para o trigo (jun–jul–ago) num mesmo estado — porque os períodos críticos
+       são diferentes. Cada janela de 3 meses é um valor RONI; os limiares ±0,5 e o
+       "forte" (|RONI| ≥ 1,5) valem igual. A janela usada aparece ao lado do seletor de
+       cultura no painel.</p>
+
+    <p><strong>Janela ENSO usada em cada estado e cultura</strong> (verificável contra o
+       CONAB). Cada célula mostra <em>mês de plantio (CONAB) → janela ENSO de 3 meses</em>.
+       A cor indica o ano do ENSO em relação à colheita registrada na PAM:
+       <span style="color:var(--fase-en);font-weight:bold">vermelho = ano anterior à
+       colheita</span> (culturas de verão, plantio out–dez, colhidas no ano seguinte);
+       <span style="color:var(--text-2);font-weight:bold">cinza = mesmo ano da colheita</span>
+       (trigo/inverno e 2ª safra). <strong>†</strong> = estado sem data no CONAB, usa a
+       moda nacional da cultura; <strong>*</strong> = cana (sem CONAB), janela padrão.</p>
+    <div id="janela-wrap"><table id="janela-tabela"></table></div>
 
     <h2>3. Indicadores climáticos</h2>
     <ul>
@@ -188,5 +215,44 @@
 
     <p class="volta"><a href="./index.html">← Voltar ao mapa</a></p>
   </main>
+
+  <script type="module">
+    // Tabela dinamica: janela ENSO por UF x cultura (fonte: janela_cultura_uf.csv).
+    const COLS = [
+      ['soja', 'Soja'], ['milho', 'Milho (total)'], ['milho1', 'Milho 1ª'],
+      ['milho2', 'Milho 2ª'], ['arroz', 'Arroz'], ['feijao', 'Feijão'],
+      ['trigo', 'Trigo'], ['cana', 'Cana'],
+    ];
+    const rows = await d3.csv('./data/janela_cultura_uf.csv');
+    const m = new Map(); // uf -> cultura -> {plantio, label, off, origem}
+    for (const r of rows) {
+      if (!m.has(r.uf)) m.set(r.uf, {});
+      m.get(r.uf)[r.cultura] = {
+        plantio: r.mes_plantio, label: r.janela_label,
+        off: +r.ano_offset, origem: r.origem,
+      };
+    }
+    const ufs = [...m.keys()].sort();
+    const t = d3.select('#janela-tabela');
+    const thead = t.append('thead').append('tr');
+    thead.append('th').text('UF');
+    for (const [, lab] of COLS) thead.append('th').text(lab);
+    const tb = t.append('tbody');
+    for (const uf of ufs) {
+      const tr = tb.append('tr');
+      tr.append('td').text(uf);
+      for (const [key] of COLS) {
+        const c = m.get(uf)[key];
+        const td = tr.append('td');
+        if (!c) { td.attr('class', 'vazio').text('—'); continue; }
+        const marca = c.origem === 'moda' ? '†' : c.origem === 'padrao' ? '*' : '';
+        const plant = c.plantio ? `${c.plantio}→` : '';
+        td.attr('class', c.off === -1 ? 'ano-ant' : 'mesmo')
+          .attr('title', `plantio ${c.plantio || '—'} · ${c.off === -1
+            ? 'ENSO do ano anterior à colheita' : 'ENSO do mesmo ano da colheita'}`)
+          .text(`${plant}${c.label}${marca}`);
+      }
+    }
+  </script>
 </body>
 </html>
