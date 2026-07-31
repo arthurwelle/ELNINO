@@ -196,6 +196,7 @@ select {
   box-shadow: var(--shadow);
 }
 .info-i:hover .info-tip, .info-i:focus .info-tip { display: block; }
+.info-tip a { color: inherit; text-decoration: underline; font-weight: 600; }
 
 /* === Legenda choropleth ================================================= */
 #choro-legend {
