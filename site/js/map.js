@@ -71,6 +71,11 @@ export const map = new maplibregl.Map({
   bounds: [[-74, -34], [-28, 6]],
   fitBoundsOptions: { padding: 15 },
   attributionControl: false,
+  // municipios.pmtiles so tem tiles a partir do zoom 3 (header do arquivo).
+  // Sem esse piso, o fitBounds do Brasil inteiro numa tela de celular
+  // (container pequeno) calcula um zoom abaixo disso — sem tile, mapa preto
+  // ate o usuario dar zoom manualmente.
+  minZoom: 3,
   // no mobile o mapa fica empilhado sobre conteúdo rolável — sem isso, arrastar
   // com 1 dedo move o mapa em vez de rolar a página até os gráficos.
   cooperativeGestures: window.innerWidth <= 800,
