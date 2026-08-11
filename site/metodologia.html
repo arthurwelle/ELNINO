@@ -50,6 +50,10 @@
       <tr><td>Produção agrícola municipal (área, produção, valor)</td>
           <td><a href="https://www.ibge.gov.br/estatisticas/economicas/agricultura-e-pecuaria/9117-producao-agricola-municipal-culturas-temporarias-e-permanentes.html">IBGE - Pesquisa Agrícola Municipal (PAM)</a></td>
           <td>1974–2024</td></tr>
+      <tr><td>Divisão regional (município → Região Geográfica Intermediária)</td>
+          <td><a href="https://www.ibge.gov.br/geociencias/organizacao-do-territorio/divisao-regional/15778-divisoes-regionais-do-brasil.html">IBGE - Divisão Regional do Brasil</a>
+              (133 regiões intermediárias)</td>
+          <td>2017</td></tr>
       <tr><td>Calendário de plantio (mês de início por UF e cultura)</td>
           <td><a href="https://www.gov.br/conab/pt-br/acesso-a-informacao/institucional/publicacoes/outras-publicacoes/calendario-agricola-plantio-e-colheita">CONAB - Calendário Agrícola</a> -
               define a janela ENSO de cada cultura
@@ -172,6 +176,29 @@
        (soma da produção ÷ soma da área colhida, portanto ponderado pela área de cada
        município) e sua anomalia média por fase. Serve de referência regional para
        situar o município.</p>
+
+    <h3>Região intermediária</h3>
+    <p>Além da UF, o site agrega por <strong>Região Geográfica Intermediária</strong> —
+       a divisão do IBGE de 2017 que agrupa municípios em torno de uma cidade-polo
+       (133 regiões no país; ex.: Sinop, Rio Verde, Uruguaiana). É um recorte mais fino
+       que o estado e mais robusto que o município isolado, útil onde um município
+       sozinho tem série curta ou não produz a cultura.</p>
+    <p>O rendimento da região usa a mesma fórmula da UF (soma da produção ÷ soma da área
+       colhida de todos os seus municípios) e a janela ENSO da UF a que pertence. No
+       mapa, o botão <strong>Município | Região</strong> ao lado dos indicadores de
+       rendimento troca entre os dois recortes; nos gráficos, o seletor
+       <strong>Comparar com</strong> alterna entre estado e região.</p>
+
+    <h3>Recorte por maior produção</h3>
+    <p>O painel <strong>Recorte maior produção</strong> filtra o mapa para exibir
+       apenas o <strong>menor conjunto de municípios que, somados, respondem pelo
+       percentual escolhido</strong> (50% a 90%) da produção nacional de uma cultura.
+       O ranking usa a <strong>produção média de 2020–2024</strong>, que reflete a
+       geografia atual da lavoura. O filtro é independente do indicador que estiver
+       colorindo o mapa.</p>
+    <p class="nota">A concentração é alta e varia muito por cultura: metade da soja
+       brasileira sai de 124 municípios (4,6% dos que plantam soja) e metade do arroz
+       vem de apenas 20 municípios (1%), quase todos no Rio Grande do Sul.</p>
 
     <h3>Milho: 1ª e 2ª safra</h3>
     <p>A partir de 2003 a PAM separa o milho em <strong>1ª safra</strong> (verão, sensível

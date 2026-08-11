@@ -158,6 +158,8 @@ function renderLegenda(escala, lim, fonte) {
       .attr('class', 'legend-tick')
       .text(`${t > 0 ? '+' : ''}${Math.round(t * 10) / 10}${fonte.unidade}`);
   }
+  // avisa que o mapa está recortado (útil com a sidebar recolhida no celular)
+  if (notaFiltro) el.append('div').attr('class', 'legend-filtro').text(notaFiltro);
 }
 
 // ------------------------------------------------------------ hover / click
@@ -219,6 +221,52 @@ export function clearSelection() {
     map.setFeatureState({ source: 'municipios', sourceLayer: 'mun', id: selectedId }, { selected: false });
     selectedId = null;
   }
+}
+
+// Filtro de municípios (concentração da produção): mostra só os códigos passados.
+// Usa `match` (lookup interno do MapLibre) em vez de `in`, que é busca linear —
+// mesma forma de expressão do choropleth, rápida mesmo com milhares de códigos.
+const CAMADAS_MUN = ['municipios-fill', 'municipios-outline',
+                     'municipios-selected-fill', 'municipios-selected-stroke'];
+export function setFiltroMunicipios(codes) {
+  const expr = codes && codes.length
+    ? ['match', ['get', 'code_muni'], codes.map(Number), true, false]
+    : null;
+  const aplicar = () => CAMADAS_MUN.forEach((id) => map.setFilter(id, expr));
+  if (map.isStyleLoaded()) aplicar();
+  else map.once('load', aplicar);
+}
+
+// nota exibida na legenda quando o filtro de concentração está ativo
+let notaFiltro = '';
+export function setNotaFiltro(txt) {
+  notaFiltro = txt || '';
+  if (fonteAtiva) updateChoropleth(fonteAtiva);  // re-render da legenda
+}
+
+// Bordas das regiões intermediárias: carregadas sob demanda (só na 1ª vez que o
+// usuário escolhe o escopo Região) e depois só alternando visibility.
+let bordasRgiAdicionadas = false;
+export function setBordasRgi(visivel) {
+  const aplicar = () => {
+    if (!bordasRgiAdicionadas) {
+      if (!visivel) return;               // nada a fazer se nunca foi ligado
+      map.addSource('rgi', { type: 'geojson', data: './geo/rgi.geojson' });
+      map.addLayer({
+        id: 'rgi-outline', type: 'line', source: 'rgi',
+        paint: {
+          'line-color': '#e8ecf1',
+          'line-width': ['interpolate', ['linear'], ['zoom'], 3, 0.8, 8, 2],
+          'line-opacity': 0.9,
+        },
+      }, 'municipios-selected-fill');     // abaixo do destaque amarelo
+      bordasRgiAdicionadas = true;
+      return;
+    }
+    map.setLayoutProperty('rgi-outline', 'visibility', visivel ? 'visible' : 'none');
+  };
+  if (map.isStyleLoaded()) aplicar();
+  else map.once('load', aplicar);
 }
 
 // Seleção programática (busca): voa até o centroide e destaca o município

@@ -44,8 +44,10 @@ export const METRICAS = [
   { col: 'dif_onset_en_dias', label: 'Atraso do início das chuvas em anos El Niño', unidade: ' dias', dir: -1,
     desc: 'Em anos de El Niño, o início das chuvas (que permite o plantio) atrasa (+) ou adianta (−) quantos dias em relação ao normal.' },
   { col: 'anom_rend_en_soja', label: 'Rendimento da soja em anos El Niño', unidade: '%', dir: +1,
+    colRgi: 'anom_rend_en_soja_rgi',
     desc: 'Produtividade da soja (kg/ha) em anos de El Niño, em % acima (+) ou abaixo (−) da tendência local (série 1974–2024, dados IBGE/PAM). A fase El Niño usa a janela RONI específica da soja em cada estado (mês de plantio do calendário CONAB) — veja a <a href="./metodologia.html">metodologia</a>.' },
   { col: 'anom_rend_en_milho', label: 'Rendimento do milho em anos El Niño', unidade: '%', dir: +1,
+    colRgi: 'anom_rend_en_milho_rgi',
     desc: 'Produtividade do milho (kg/ha) em anos de El Niño, em % acima (+) ou abaixo (−) da tendência local (série 1974–2024, dados IBGE/PAM). Cada estado usa a safra (1ª ou 2ª) de maior produção local, com a janela RONI específica dessa safra — veja a <a href="./metodologia.html">metodologia</a>.' },
 ];
 

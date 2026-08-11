@@ -47,6 +47,14 @@ Termos canônicos do projeto. Somente linguagem de domínio; nada de implementa�
 - **Valor do estado (UF)**: agregado da unidade federativa usado como referência nos
   gráficos de produtividade — rendimento = Σprodução ÷ Σárea colhida (ponderado por
   área), e sua anomalia média por fase. Aplica-se só à PAM (não ao clima).
+- **Região intermediária**: Região Geográfica Intermediária do IBGE (divisão de 2017,
+  133 regiões, nomeadas pela cidade-polo). Nível entre município e UF, com a mesma
+  fórmula de rendimento agregado e a janela ENSO da UF-mãe. O de-para vem de
+  `GEO/meso.csv` — o arquivo tem "meso" no nome, mas seu conteúdo é a divisão de
+  regiões intermediárias, não as mesorregiões clássicas de `GEO/meso.gpkg` (137).
+- **Concentração da produção**: menor conjunto de municípios que, somados, respondem
+  por um dado percentual da produção nacional de uma cultura, ranqueados pela produção
+  média dos últimos 5 anos. Usado como filtro do mapa.
 - **Milho 1ª/2ª safra**: a PAM separa o milho em primeira e segunda safra a partir de
   2003; antes disso só há "milho" total. No mapa, cada UF exibe a safra de maior
   produção no estado (safra dominante).

@@ -45,6 +45,28 @@
             </label>
             <button id="exp-aplicar">Aplicar ao mapa</button>
           </div>
+          <h2>Recorte maior produção
+            <span class="info-i" tabindex="0">i<span class="info-tip">Mostra no mapa
+              apenas o menor conjunto de municípios que, somados, respondem pelo
+              percentual escolhido da produção nacional da cultura (média de 2020–2024).
+              Vale para qualquer indicador selecionado acima.</span></span>
+          </h2>
+          <div id="sb-concentracao">
+            <label>Cultura
+              <select id="conc-cultura"></select>
+            </label>
+            <label>Municípios que somam
+              <select id="conc-pct">
+                <option value="" selected>Todos (sem filtro)</option>
+                <option value="50">50% da produção</option>
+                <option value="60">60% da produção</option>
+                <option value="70">70% da produção</option>
+                <option value="80">80% da produção</option>
+                <option value="90">90% da produção</option>
+              </select>
+            </label>
+            <p id="conc-info"></p>
+          </div>
         </div>
       </aside>
       <div id="choro-legend"></div>
@@ -73,6 +95,13 @@
           <span id="cultura-janela"></span>
         </div>
         <section class="chart-panel" id="chart-anom"></section>
+        <div id="regiao-controls" class="chart-panel">
+          <label for="sel-regiao">Comparar com</label>
+          <select id="sel-regiao">
+            <option value="uf" selected>Estado (UF)</option>
+            <option value="rgi">Região intermediária</option>
+          </select>
+        </div>
         <section class="chart-panel" id="chart-anom-uf"></section>
         <section class="chart-panel" id="chart-rend"></section>
         <section class="chart-panel" id="chart-rend-uf"></section>

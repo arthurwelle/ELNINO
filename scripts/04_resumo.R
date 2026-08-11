@@ -86,6 +86,31 @@ if (file.exists(milho_uf_path)) {
 }
 res_pam <- merge(soja, milho, by = "geocod", all = TRUE)
 
+# --- regiao intermediaria: valor da regiao replicado em cada municipio ------
+# (o choropleth pinta por code_muni, entao o toggle Mun|Regiao so troca de coluna)
+rgi_muni_path <- file.path(DIR_DERIVED, "rgi_muni.parquet")
+if (file.exists(rgi_muni_path)) {
+  rgi_muni <- setDT(read_parquet(rgi_muni_path))
+  rgi_res  <- setDT(read_parquet(file.path(DIR_DERIVED, "rgi_resumo.parquet")))
+  rgi_res[, uf := UF_COD[substr(cod_rgi, 1, 2)]]
+  # milho da regiao segue a safra dominante da UF-mae (mesmo criterio do municipio)
+  if (file.exists(milho_uf_path)) {
+    rgi_res <- merge(rgi_res, fread(milho_uf_path), by = "uf", all.x = TRUE)
+    m1 <- if ("milho1" %in% names(rgi_res)) rgi_res[["milho1"]] else NA_real_
+    m2 <- if ("milho2" %in% names(rgi_res)) rgi_res[["milho2"]] else NA_real_
+    rgi_res[, anom_rend_en_milho_rgi := fifelse(safra_dominante == 2L, m2, m1)]
+  } else {
+    rgi_res[, anom_rend_en_milho_rgi :=
+              if ("milho" %in% names(rgi_res)) rgi_res[["milho"]] else NA_real_]
+  }
+  rgi_res[, anom_rend_en_soja_rgi :=
+            if ("soja" %in% names(rgi_res)) rgi_res[["soja"]] else NA_real_]
+  props <- merge(props, rgi_muni, by = "geocod", all.x = TRUE)
+  props <- merge(props, rgi_res[, .(cod_rgi, anom_rend_en_soja_rgi,
+                                    anom_rend_en_milho_rgi)],
+                 by = "cod_rgi", all.x = TRUE)
+}
+
 resumo <- merge(props, res_clima, by = "geocod", all.y = TRUE)
 resumo <- merge(resumo, res_pam, by = "geocod", all.x = TRUE)
 setnames(resumo, "geocod", "code_muni")

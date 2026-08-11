@@ -17,11 +17,10 @@ export async function loadBoot() {
   ]);
   for (const r of milho) milhoSafraUf.set(r.uf, +r.safra_dominante);
   for (const r of jan) janelaUf.set(`${r.uf}|${r.cultura}`, r.janela_label);
+  const TEXTO = new Set(['code_muni', 'nome', 'uf', 'cod_rgi', 'nome_rgi']);
   for (const r of res) {
     for (const k of Object.keys(r)) {
-      if (k !== 'code_muni' && k !== 'nome' && k !== 'uf') {
-        r[k] = r[k] === '' ? null : +r[k];
-      }
+      if (!TEXTO.has(k)) r[k] = r[k] === '' ? null : +r[k];
     }
     resumo.set(String(r.code_muni), r);
   }
@@ -33,6 +32,38 @@ export async function loadBoot() {
       forte: +r.forte === 1,
     });
   }
+}
+
+// Ranking de municípios por produção (filtro de concentração no mapa).
+// Ordenado do maior produtor para o menor; pct_acum é o % acumulado da produção.
+const cacheConc = new Map();
+export async function loadConcentracao(cultura) {
+  if (cacheConc.has(cultura)) return cacheConc.get(cultura);
+  const rows = await d3.csv(`./data/concentracao/${cultura}.csv`, (d) => ({
+    code_muni: d.code_muni,
+    pct_acum: +d.pct_acum,
+  })).catch(() => null);
+  cacheConc.set(cultura, rows);
+  return rows;
+}
+
+// Séries agregadas por região intermediária (mesmo formato das da UF).
+const cacheRgi = new Map();
+export async function loadRgi(codRgi) {
+  if (!codRgi) return null;
+  if (cacheRgi.has(codRgi)) return cacheRgi.get(codRgi);
+  const rows = await d3.csv(`./data/rgi/${codRgi}.csv`, (d) => ({
+    cultura: d.cultura,
+    ano: +d.ano,
+    rend_kg_ha: d.rend_kg_ha === '' ? null : +d.rend_kg_ha,
+    anom_rend_pct: d.anom_rend_pct === '' ? null : +d.anom_rend_pct,
+    delta_rend_pct: d.delta_rend_pct === '' ? null : +d.delta_rend_pct,
+    fase: d.fase,
+    forte: +d.forte === 1,
+    roni_pico: d.roni_pico === '' ? null : +d.roni_pico,
+  })).catch(() => null);
+  cacheRgi.set(codRgi, rows);
+  return rows;
 }
 
 // Séries agregadas por UF (para comparar município com estado). null se não existir.

@@ -1,7 +1,7 @@
 // Orquestração: boot, seleção de município, seletores, download.
 
 import { CULTURAS, debounce } from './config.js';
-import { loadBoot, loadMunicipio, loadEstado, janelaUf, resumo } from './data.js';
+import { loadBoot, loadMunicipio, loadEstado, loadRgi, janelaUf, resumo } from './data.js';
 import { map, initInteracao, selecionarNoMapa, valorFonteAtiva } from './map.js';
 import { initSidebar } from './sidebar.js';
 import { initBusca } from './busca.js';
@@ -18,6 +18,10 @@ for (const c of CULTURAS) {
   selCultura.appendChild(o);
 }
 selCultura.addEventListener('change', renderPam);
+
+// escopo dos 2 gráficos regionais: 'uf' (estado) ou 'rgi' (região intermediária)
+const selRegiao = $('sel-regiao');
+selRegiao.addEventListener('change', renderPam);
 
 function culturaDefault(anual) {
   // maior área plantada recente entre as disponíveis
@@ -52,8 +56,9 @@ async function onSelect(geocod, nome, uf, previa = null) {
     $('charts').hidden = true;
     return;
   }
-  const estado = await loadEstado(uf);
-  atual = { geocod, nome, uf, estado, ...dados };
+  const info = resumo.get(geocod);
+  const [estado, rgi] = await Promise.all([loadEstado(uf), loadRgi(info?.cod_rgi)]);
+  atual = { geocod, nome, uf, estado, rgi, nomeRgi: info?.nome_rgi, ...dados };
 
   $('muni-actions').hidden = false;
   $('dl-mensal').href = `./data/mensal/${geocod}.csv`;
@@ -69,7 +74,7 @@ async function onSelect(geocod, nome, uf, previa = null) {
   chartAcumulados('#chart-acum', dados.mensal);
 
   $('pam-aviso').hidden = temPam;
-  for (const id of ['pam-controls', 'chart-anom', 'chart-anom-uf',
+  for (const id of ['pam-controls', 'chart-anom', 'regiao-controls', 'chart-anom-uf',
                     'chart-rend', 'chart-rend-uf']) {
     $(id).style.display = temPam ? '' : 'none';
   }
@@ -90,14 +95,18 @@ function renderPam() {
   chartAnomalia('#chart-anom', atual.anual, cult);
   chartRendimento('#chart-rend', atual.anual, cult);
 
-  // gráficos do estado (UF) — mesmas funções com a série agregada
-  const temEstado = atual.estado?.some((r) => r.cultura === cult && r.rend_kg_ha != null);
-  const rot = ` — ${atual.uf} (estado)`;
-  $('chart-anom-uf').style.display = temEstado ? '' : 'none';
-  $('chart-rend-uf').style.display = temEstado ? '' : 'none';
-  if (temEstado) {
-    chartAnomalia('#chart-anom-uf', atual.estado, cult, rot);
-    chartRendimento('#chart-rend-uf', atual.estado, cult, rot);
+  // gráficos regionais — mesmas funções, com a série agregada do escopo escolhido
+  const porRgi = selRegiao.value === 'rgi';
+  const serie = porRgi ? atual.rgi : atual.estado;
+  const rot = porRgi
+    ? ` — ${atual.nomeRgi ?? 'região'} (região intermediária)`
+    : ` — ${atual.uf} (estado)`;
+  const temSerie = serie?.some((r) => r.cultura === cult && r.rend_kg_ha != null);
+  $('chart-anom-uf').style.display = temSerie ? '' : 'none';
+  $('chart-rend-uf').style.display = temSerie ? '' : 'none';
+  if (temSerie) {
+    chartAnomalia('#chart-anom-uf', serie, cult, rot);
+    chartRendimento('#chart-rend-uf', serie, cult, rot);
   }
 }
 

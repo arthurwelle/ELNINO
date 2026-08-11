@@ -1,8 +1,8 @@
 // Sidebar esquerda: métricas principais (resumo.csv) + explorador indicador×mês×fase.
 
-import { METRICAS, INDICADORES, FASES, FASE, MESES_LONGOS } from './config.js';
-import { resumo } from './data.js';
-import { map, updateChoropleth } from './map.js';
+import { METRICAS, INDICADORES, FASES, FASE, MESES_LONGOS, CULTURAS } from './config.js';
+import { resumo, loadConcentracao } from './data.js';
+import { map, updateChoropleth, setBordasRgi, setFiltroMunicipios, setNotaFiltro } from './map.js';
 
 const cacheMapa = new Map(); // "<ind>_<mes>" -> Map<code, {en,ln,n,med}>
 
@@ -27,11 +27,22 @@ function infoIcon(desc) {
   return `<span class="info-i" tabindex="0">i<span class="info-tip">${desc}</span></span>`;
 }
 
+// escopo do choropleth por métrica que tem versão regional: 'mun' | 'rgi'
+const escopoMetrica = new Map();
+
 // --- aplicar métrica principal ---------------------------------------------
 function aplicarMetrica(met) {
+  const porRegiao = met.colRgi && escopoMetrica.get(met.col) === 'rgi';
+  const coluna = porRegiao ? met.colRgi : met.col;
   const values = new Map();
-  for (const [code, r] of resumo) values.set(code, r[met.col]);
-  updateChoropleth({ values, label: met.label, unidade: met.unidade, dir: met.dir });
+  for (const [code, r] of resumo) values.set(code, r[coluna]);
+  updateChoropleth({
+    values,
+    label: met.label + (porRegiao ? ' · por região intermediária' : ''),
+    unidade: met.unidade,
+    dir: met.dir,
+  });
+  if (met.colRgi) setBordasRgi(porRegiao);
 }
 
 // --- aplicar seleção do explorador -----------------------------------------
@@ -64,6 +75,34 @@ async function aplicarExplorador() {
   document.querySelectorAll('#sb-metricas input[type=radio]').forEach((r) => { r.checked = false; });
 }
 
+// --- filtro de concentração da produção -------------------------------------
+async function aplicarConcentracao() {
+  const cultura = document.getElementById('conc-cultura').value;
+  const pct = document.getElementById('conc-pct').value;
+  const info = document.getElementById('conc-info');
+  const rotulo = CULTURAS.find((c) => c.id === cultura)?.label ?? cultura;
+
+  if (!pct) {                       // "Todos": remove o filtro
+    setFiltroMunicipios(null);
+    setNotaFiltro('');
+    info.textContent = '';
+    return;
+  }
+  const rank = await loadConcentracao(cultura);
+  if (!rank) {
+    info.textContent = 'Sem dados de produção para esta cultura.';
+    setFiltroMunicipios(null);
+    setNotaFiltro('');
+    return;
+  }
+  const lim = +pct;
+  const sel = rank.filter((r) => r.pct_acum <= lim).map((r) => r.code_muni);
+  setFiltroMunicipios(sel);
+  setNotaFiltro(`mostrando ${lim}% da produção de ${rotulo.toLowerCase()}`);
+  info.textContent = `${sel.length.toLocaleString('pt-BR')} de ` +
+    `${rank.length.toLocaleString('pt-BR')} municípios produtores`;
+}
+
 // --- montar sidebar ---------------------------------------------------------
 export function initSidebar() {
   const sb = document.getElementById('sidebar');
@@ -75,11 +114,44 @@ export function initSidebar() {
     row.className = 'sb-row';
     row.innerHTML = `<input type="radio" name="metrica" value="${met.col}" ${met.default ? 'checked' : ''}>
       <span class="sb-label">${met.label}</span>${infoIcon(met.desc)}`;
-    row.querySelector('input').addEventListener('change', () => aplicarMetrica(met));
+    const radio = row.querySelector('input');
+    radio.addEventListener('change', () => aplicarMetrica(met));
     secA.appendChild(row);
+
+    // métricas com versão regional ganham um toggle Mun|Região logo abaixo
+    if (met.colRgi) {
+      escopoMetrica.set(met.col, 'mun');
+      const tg = document.createElement('div');
+      tg.className = 'escopo-toggle';
+      tg.innerHTML = `<button type="button" data-e="mun" class="ativo">Município</button>` +
+                     `<button type="button" data-e="rgi">Região</button>`;
+      tg.addEventListener('click', (e) => {
+        const b = e.target.closest('button');
+        if (!b) return;
+        e.preventDefault();
+        escopoMetrica.set(met.col, b.dataset.e);
+        tg.querySelectorAll('button').forEach((x) => x.classList.toggle('ativo', x === b));
+        // clicar no escopo também seleciona este indicador: se o mapa estava em
+        // outro indicador, o usuário espera ver este aqui, no nível que escolheu
+        radio.checked = true;
+        aplicarMetrica(met);
+      });
+      secA.appendChild(tg);
+    }
   }
 
-  // Seção B: explorador
+  // Seção B: concentração da produção (filtra quais municípios aparecem no mapa)
+  const selConcCult = document.getElementById('conc-cultura');
+  for (const c of CULTURAS) {
+    const o = document.createElement('option');
+    o.value = c.id; o.textContent = c.label;
+    if (c.id === 'soja') o.selected = true;
+    selConcCult.appendChild(o);
+  }
+  selConcCult.addEventListener('change', aplicarConcentracao);
+  document.getElementById('conc-pct').addEventListener('change', aplicarConcentracao);
+
+  // Seção C: explorador
   const selInd = document.getElementById('exp-ind');
   for (const i of INDICADORES) {
     const o = document.createElement('option');

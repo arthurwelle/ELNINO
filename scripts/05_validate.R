@@ -40,6 +40,33 @@ sem_coord <- resumo[is.na(lon) | is.na(lat), .N]
 message("resumo sem lon/lat: ", sem_coord)
 if (sem_coord > nrow(resumo) * 0.01) falha("mais de 1% dos municipios sem centroide")
 
+# regiao intermediaria (RGI): series por regiao, bordas e cobertura do de-para
+rgi_files <- list.files(file.path(DIR_SITE_DATA, "rgi"), pattern = "\\.csv$")
+message("rgi/: ", length(rgi_files), " regioes")
+if (length(rgi_files) < 130L) falha("rgi/ com menos de 130 regioes")
+geo_rgi <- file.path(DIR_ROOT, "site", "geo", "rgi.geojson")
+if (!file.exists(geo_rgi)) falha("site/geo/rgi.geojson ausente")
+
+# concentracao da producao: ranking por cultura (filtro do mapa)
+conc <- list.files(file.path(DIR_SITE_DATA, "concentracao"), pattern = "\\.csv$",
+                   full.names = TRUE)
+message("concentracao/: ", length(conc), " culturas")
+if (length(conc) < 6L) falha("concentracao/ com menos de 6 culturas")
+for (f in conc) {
+  d <- fread(f)
+  if (is.unsorted(d[["pct_acum"]])) falha(basename(f), ": pct_acum nao monotonico")
+  if (abs(tail(d[["pct_acum"]], 1) - 100) > 0.5) {
+    falha(basename(f), ": pct_acum termina em ", tail(d[["pct_acum"]], 1))
+  }
+}
+if ("cod_rgi" %in% names(resumo)) {
+  sem_rgi <- resumo[is.na(cod_rgi), .N]
+  message("resumo sem cod_rgi: ", sem_rgi)
+  if (sem_rgi > nrow(resumo) * 0.01) falha("mais de 1% dos municipios sem regiao")
+} else {
+  falha("resumo.csv sem coluna cod_rgi")
+}
+
 # 3. sanidade PAM
 anuais <- list.files(DIR_SITE_ANUAL, pattern = "\\.csv$", full.names = TRUE)
 message("anual/: ", length(anuais), " arquivos")
