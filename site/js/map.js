@@ -278,7 +278,9 @@ export function applyMapTheme(tema) {
     const vis = (id) => (!modoLimpo && t.base === id ? 'visible' : 'none');
     map.setLayoutProperty('carto-dark', 'visibility', vis('carto-dark'));
     map.setLayoutProperty('carto-light', 'visibility', vis('carto-light'));
-    map.setPaintProperty('background', 'background-color', t.bg);
+    // claro + modo limpo = fundo branco puro (melhor para print em relatório)
+    const bg = (modoLimpo && t.base === 'carto-light') ? '#ffffff' : t.bg;
+    map.setPaintProperty('background', 'background-color', bg);
     map.setPaintProperty('municipios-outline', 'line-color', t.mun);
     map.setPaintProperty('estados-outline', 'line-color', t.uf);
     if (map.getLayer('rgi-outline')) map.setPaintProperty('rgi-outline', 'line-color', t.rgi);
