@@ -35,9 +35,15 @@ function aplicarMetrica(met) {
   const porRegiao = met.colRgi && escopoMetrica.get(met.col) === 'rgi';
   const coluna = porRegiao ? met.colRgi : met.col;
   const values = new Map();
-  for (const [code, r] of resumo) values.set(code, r[coluna]);
+  // referência estadual mostrada no tooltip (só os indicadores de rendimento)
+  const valoresUf = met.colUf ? new Map() : null;
+  for (const [code, r] of resumo) {
+    values.set(code, r[coluna]);
+    if (valoresUf) valoresUf.set(code, r[met.colUf]);
+  }
   updateChoropleth({
     values,
+    valoresUf,
     label: met.label + (porRegiao ? ' · por região intermediária' : ''),
     unidade: met.unidade,
     dir: met.dir,

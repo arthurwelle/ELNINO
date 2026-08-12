@@ -111,6 +111,26 @@ if (file.exists(rgi_muni_path)) {
                  by = "cod_rgi", all.x = TRUE)
 }
 
+# --- referencia estadual no tooltip: valor da UF replicado por municipio ----
+uf_res_path <- file.path(DIR_DERIVED, "uf_resumo.parquet")
+if (file.exists(uf_res_path)) {
+  uf_res <- setDT(read_parquet(uf_res_path))
+  if (file.exists(milho_uf_path)) {
+    uf_res <- merge(uf_res, fread(milho_uf_path), by = "uf", all.x = TRUE)
+    u1 <- if ("milho1" %in% names(uf_res)) uf_res[["milho1"]] else NA_real_
+    u2 <- if ("milho2" %in% names(uf_res)) uf_res[["milho2"]] else NA_real_
+    uf_res[, anom_rend_en_milho_uf := fifelse(safra_dominante == 2L, u2, u1)]
+  } else {
+    uf_res[, anom_rend_en_milho_uf :=
+             if ("milho" %in% names(uf_res)) uf_res[["milho"]] else NA_real_]
+  }
+  uf_res[, anom_rend_en_soja_uf :=
+           if ("soja" %in% names(uf_res)) uf_res[["soja"]] else NA_real_]
+  props <- merge(props, uf_res[, .(uf, anom_rend_en_soja_uf,
+                                   anom_rend_en_milho_uf)],
+                 by = "uf", all.x = TRUE)
+}
+
 resumo <- merge(props, res_clima, by = "geocod", all.y = TRUE)
 resumo <- merge(resumo, res_pam, by = "geocod", all.x = TRUE)
 setnames(resumo, "geocod", "code_muni")

@@ -5,6 +5,7 @@ import { loadBoot, loadMunicipio, loadEstado, loadRgi, janelaUf, resumo } from '
 import { map, initInteracao, selecionarNoMapa, valorFonteAtiva } from './map.js';
 import { initSidebar } from './sidebar.js';
 import { initBusca } from './busca.js';
+import { initTema } from './tema.js';
 import { chartClimatologia, chartAcumulados, chartAnomalia, chartRendimento } from './charts.js';
 
 const $ = (id) => document.getElementById(id);
@@ -128,9 +129,12 @@ function rerenderCharts() {
   renderPam();
 }
 window.addEventListener('resize', debounce(rerenderCharts, 200));
+// gráficos leem as cores das variáveis CSS: ao trocar de tema, re-renderiza
+window.addEventListener('themechange', rerenderCharts);
 
 // boot
 (async () => {
+  initTema();
   await loadBoot();
   initSidebar();  // monta a UI da sidebar já; o choropleth pinta no load do mapa
   initInteracao(onSelect, onDeselect);

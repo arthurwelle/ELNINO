@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>El Niño e a Agricultura Brasileira</title>
+  <script>
+    // aplica o tema salvo antes do primeiro paint (evita piscar escuro→claro)
+    try {
+      const t = localStorage.getItem('tema');
+      if (t && t !== 'escuro') document.documentElement.dataset.theme = t;
+    } catch { /* modo privado */ }
+  </script>
   <link rel="stylesheet" href="./css/style.css">
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
   <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -18,6 +25,7 @@
       <input type="text" id="busca-input" placeholder="Buscar município..." autocomplete="off" aria-label="Buscar município">
       <ul id="busca-resultados" hidden></ul>
     </div>
+    <button id="btn-tema" type="button" title="Mudar para tema claro"></button>
     <a id="link-metodologia" href="./metodologia.html">Metodologia</a>
   </header>
   <div id="app-layout">

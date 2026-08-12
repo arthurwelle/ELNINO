@@ -20,6 +20,17 @@ export const map = new maplibregl.Map({
         tileSize: 256,
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
       },
+      'carto-light': {
+        type: 'raster',
+        tiles: [
+          'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+          'https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+          'https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+          'https://d.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+        ],
+        tileSize: 256,
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
+      },
       municipios: {
         type: 'vector',
         url: 'pmtiles://./geo/municipios.pmtiles',
@@ -33,6 +44,7 @@ export const map = new maplibregl.Map({
     layers: [
       { id: 'background', type: 'background', paint: { 'background-color': '#0d1117' } },
       { id: 'carto-dark', type: 'raster', source: 'carto-dark' },
+      { id: 'carto-light', type: 'raster', source: 'carto-light', layout: { visibility: 'none' } },
       {
         id: 'municipios-fill', type: 'fill', source: 'municipios', 'source-layer': 'mun',
         paint: { 'fill-color': '#cccccc', 'fill-opacity': 0.85 },
@@ -178,8 +190,13 @@ export function initInteracao(onSelect, onDeselect) {
     const linha = fonteAtiva
       ? `<span>${fonteAtiva.label}:</span> <b>${fmtValor(val, fonteAtiva.unidade)}</b>`
       : '';
+    // referência do estado, quando o indicador tem versão agregada por UF
+    const valUf = fonteAtiva?.valoresUf?.get(String(code_muni));
+    const linhaUf = valUf != null && !Number.isNaN(valUf)
+      ? `<br><span class="popup-uf">${abbrev_state} (estado): ${fmtValor(valUf, fonteAtiva.unidade)}</span>`
+      : '';
     popup.setLngLat(e.lngLat)
-      .setHTML(`<strong>${name_muni} · ${abbrev_state}</strong><br>${linha}`)
+      .setHTML(`<strong>${name_muni} · ${abbrev_state}</strong><br>${linha}${linhaUf}`)
       .addTo(map);
   });
 
@@ -223,6 +240,27 @@ export function clearSelection() {
   }
 }
 
+// ---------------------------------------------------------------- temas
+const MAP_TEMAS = {
+  escuro: { base: 'carto-dark',  bg: '#0d1117', mun: 'rgba(0,0,0,0.5)',
+            uf: '#8b98a8', rgi: '#e8ecf1' },
+  claro:  { base: 'carto-light', bg: '#dce6f0', mun: 'rgba(255,255,255,0.7)',
+            uf: '#5a6672', rgi: '#22303f' },
+};
+export function applyMapTheme(tema) {
+  const t = MAP_TEMAS[tema] ?? MAP_TEMAS.escuro;
+  const aplicar = () => {
+    map.setLayoutProperty('carto-dark', 'visibility', t.base === 'carto-dark' ? 'visible' : 'none');
+    map.setLayoutProperty('carto-light', 'visibility', t.base === 'carto-light' ? 'visible' : 'none');
+    map.setPaintProperty('background', 'background-color', t.bg);
+    map.setPaintProperty('municipios-outline', 'line-color', t.mun);
+    map.setPaintProperty('estados-outline', 'line-color', t.uf);
+    if (map.getLayer('rgi-outline')) map.setPaintProperty('rgi-outline', 'line-color', t.rgi);
+  };
+  if (map.isStyleLoaded()) aplicar();
+  else map.once('load', aplicar);
+}
+
 // Filtro de municípios (concentração da produção): mostra só os códigos passados.
 // Usa `match` (lookup interno do MapLibre) em vez de `in`, que é busca linear —
 // mesma forma de expressão do choropleth, rápida mesmo com milhares de códigos.
@@ -252,10 +290,12 @@ export function setBordasRgi(visivel) {
     if (!bordasRgiAdicionadas) {
       if (!visivel) return;               // nada a fazer se nunca foi ligado
       map.addSource('rgi', { type: 'geojson', data: './geo/rgi.geojson' });
+      const temaCor = MAP_TEMAS[document.documentElement.dataset.theme || 'escuro']
+        ?? MAP_TEMAS.escuro;
       map.addLayer({
         id: 'rgi-outline', type: 'line', source: 'rgi',
         paint: {
-          'line-color': '#e8ecf1',
+          'line-color': temaCor.rgi,
           'line-width': ['interpolate', ['linear'], ['zoom'], 3, 0.8, 8, 2],
           'line-opacity': 0.9,
         },

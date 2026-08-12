@@ -78,8 +78,8 @@ if (am[abs(delta_rend_pct) > DELTA_CAP, .N] > 0) falha("delta acima do cap")
 
 # 4. cortes do explorador (indicador x mes)
 mapa <- list.files(file.path(DIR_SITE_DATA, "mapa"), pattern = "\\.csv$")
-message("mapa/: ", length(mapa), " arquivos (esperado 108)")
-if (length(mapa) != 108L) falha("contagem mapa/ difere de 9 indicadores x 12 meses")
+message("mapa/: ", length(mapa), " arquivos (esperado 120)")
+if (length(mapa) != 120L) falha("contagem mapa/ difere de 10 indicadores x 12 meses")
 
 # 5. tamanho total do site/data
 tam <- sum(file.info(list.files(DIR_SITE_DATA, recursive = TRUE, full.names = TRUE))$size)

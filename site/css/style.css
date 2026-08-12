@@ -1,5 +1,6 @@
 /* ============================================================ */
-/* Tema escuro (escolhido pelo usuário entre 3 protótipos)       */
+/* Temas: escuro (padrão) e claro, alternáveis pelo botão do    */
+/* cabeçalho (data-theme="claro" no <html>).                    */
 /* ============================================================ */
 
 :root {
@@ -34,6 +35,40 @@
 
   --sel-bg: #232a33;
   --sel-border: #3a444f;
+}
+
+/* Tema claro. Cores de fase validadas contra o fundo branco (separação para
+   daltonismo e visão normal); o Neutro é propositalmente dessaturado — é o
+   ponto médio da escala El Niño ↔ La Niña. */
+:root[data-theme="claro"] {
+  --bg-page: #eef1f5;
+  --surface: #ffffff;
+  --surface-2: #f5f7fa;
+  --overlay: rgba(255, 255, 255, 0.96);
+  --border: rgba(15, 30, 50, 0.12);
+  --shadow: 0 1px 4px rgba(15, 30, 50, 0.14);
+
+  --accent: #1b4f86;
+  --accent-hover: #2a6aad;
+  --on-accent: #ffffff;
+
+  --text: #16202b;
+  --text-2: #4d5a68;
+  --muted: #77828f;
+  --grid: #e3e8ee;
+  --axis: #b9c2cc;
+
+  --tooltip-bg: rgba(255, 255, 255, 0.98);
+  --tooltip-text: #16202b;
+  --tip-bg: #1b4f86;
+  --tip-text: #ffffff;
+
+  --fase-en: #d73027;
+  --fase-ln: #4575b4;
+  --fase-n: #a3915c;
+
+  --sel-bg: #ffffff;
+  --sel-border: #b9c2cc;
 }
 
 /* === Reset & base ======================================================= */
@@ -423,6 +458,7 @@ select {
   color: var(--tooltip-text);
 }
 .maplibregl-popup-content strong { color: var(--accent); }
+.popup-uf { color: var(--muted); font-size: 11px; }
 .maplibregl-popup-content span { color: var(--text-2); font-size: 11px; }
 .maplibregl-popup-tip { display: none; }
 
@@ -430,6 +466,24 @@ select {
 .maplibregl-ctrl button .maplibregl-ctrl-icon { filter: invert(0.85); }
 .maplibregl-ctrl-attrib { background: rgba(20, 25, 32, 0.7); }
 .maplibregl-ctrl-attrib, .maplibregl-ctrl-attrib a { color: var(--text-2); }
+/* no claro os ícones do MapLibre já são escuros: sem inversão */
+:root[data-theme="claro"] .maplibregl-ctrl button .maplibregl-ctrl-icon { filter: none; }
+:root[data-theme="claro"] .maplibregl-ctrl-attrib { background: rgba(255, 255, 255, 0.8); }
+
+/* === Botão de tema ====================================================== */
+#btn-tema {
+  align-self: center;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: none;
+  border: 1px solid var(--sel-border);
+  color: var(--text-2);
+  border-radius: 50%;
+  width: 26px; height: 26px;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+#btn-tema:hover { border-color: var(--accent); color: var(--accent); }
 
 /* === Página de metodologia ============================================= */
 #doc {

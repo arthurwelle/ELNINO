@@ -44,10 +44,10 @@ export const METRICAS = [
   { col: 'dif_onset_en_dias', label: 'Atraso do início das chuvas em anos El Niño', unidade: ' dias', dir: -1,
     desc: 'Em anos de El Niño, o início das chuvas (que permite o plantio) atrasa (+) ou adianta (−) quantos dias em relação ao normal.' },
   { col: 'anom_rend_en_soja', label: 'Rendimento da soja em anos El Niño', unidade: '%', dir: +1,
-    colRgi: 'anom_rend_en_soja_rgi',
+    colRgi: 'anom_rend_en_soja_rgi', colUf: 'anom_rend_en_soja_uf',
     desc: 'Produtividade da soja (kg/ha) em anos de El Niño, em % acima (+) ou abaixo (−) da tendência local (série 1974–2024, dados IBGE/PAM). A fase El Niño usa a janela RONI específica da soja em cada estado (mês de plantio do calendário CONAB) — veja a <a href="./metodologia.html">metodologia</a>.' },
   { col: 'anom_rend_en_milho', label: 'Rendimento do milho em anos El Niño', unidade: '%', dir: +1,
-    colRgi: 'anom_rend_en_milho_rgi',
+    colRgi: 'anom_rend_en_milho_rgi', colUf: 'anom_rend_en_milho_uf',
     desc: 'Produtividade do milho (kg/ha) em anos de El Niño, em % acima (+) ou abaixo (−) da tendência local (série 1974–2024, dados IBGE/PAM). Cada estado usa a safra (1ª ou 2ª) de maior produção local, com a janela RONI específica dessa safra — veja a <a href="./metodologia.html">metodologia</a>.' },
 ];
 
@@ -57,6 +57,8 @@ export const METRICAS = [
 export const INDICADORES = [
   { id: 'rain_mm', label: 'Chuva no mês', unidade: ' mm', modo: 'pct', dir: +1,
     desc: 'Total de chuva no mês escolhido. Mostrado como % acima/abaixo da média do município nesse mês.' },
+  { id: 'rain_3m', label: 'Chuva acumulada em 3 meses', unidade: ' mm', modo: 'pct', dir: +1,
+    desc: 'Chuva somada nos 3 meses que terminam no mês escolhido (ex.: março = janeiro + fevereiro + março). Mostrado como % acima/abaixo da média do município para essa mesma janela.' },
   { id: 'bal_mm', label: 'Balanço hídrico (chuva − evaporação)', unidade: ' mm', modo: 'dif', dir: +1,
     desc: 'Chuva menos a água que a atmosfera "puxa" (evapotranspiração). Diferença em mm vs o normal do mês: negativo = mês mais seco.' },
   { id: 'spei1', label: 'SPEI-1 (seca do mês)', unidade: '', modo: 'abs', dir: +1,

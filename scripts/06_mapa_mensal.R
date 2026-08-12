@@ -7,8 +7,11 @@
 source("scripts/00_config.R")
 suppressPackageStartupMessages(library(future.apply))
 
-INDICADORES <- c("rain_mm", "bal_mm", "spei1", "spei3", "spei6", "spei12",
+# colunas lidas do CSV mensal
+COLS_MENSAL <- c("rain_mm", "bal_mm", "spei1", "spei3", "spei6", "spei12",
                  "tmax_med", "dias_tmax34", "veranico_max")
+# rain_3m e derivada aqui (soma movel de 3 meses da chuva), sem re-rodar o 02
+INDICADORES <- c(COLS_MENSAL, "rain_3m")
 
 DIR_MAPA <- file.path(DIR_SITE_DATA, "mapa")
 if (!dir.exists(DIR_MAPA)) dir.create(DIR_MAPA)
@@ -21,7 +24,10 @@ message("Lendo ", length(arqs), " mensais...")
 
 plan(multisession, workers = max(1L, availableCores() - 2L))
 partes <- future_lapply(arqs, function(f) {
-  dt <- fread(f, select = c("data", INDICADORES))
+  dt <- fread(f, select = c("data", COLS_MENSAL))
+  setorder(dt, data)  # garante a ordem cronologica para a soma movel
+  # chuva acumulada nos 3 meses terminando no mes da linha (jan-mar em marco)
+  dt[, rain_3m := frollsum(rain_mm, 3L)]
   dt[, `:=`(ano = as.integer(substr(data, 1, 4)),
             mes = as.integer(substr(data, 6, 7)))]
   dt[, safra := fifelse(mes >= 7L, ano + 1L, ano)]

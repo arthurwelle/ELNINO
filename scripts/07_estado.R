@@ -42,4 +42,13 @@ for (u in sort(unique(agg$uf))) {
   n <- n + 1L
 }
 
+# resumo por UF (anomalia media em safras EN) — usado no tooltip do mapa como
+# referencia estadual ao lado do valor do municipio
+res_uf <- dcast(
+  agg[fase == "EN" & !is.na(anom_rend_pct),
+      .(v = if (.N >= 2L) round(mean(anom_rend_pct), 1) else NA_real_),
+      by = .(uf, cultura)],
+  uf ~ cultura, value.var = "v")
+write_parquet(res_uf, file.path(DIR_DERIVED, "uf_resumo.parquet"))
+
 message("estado/: ", n, " UFs | linhas: ", nrow(agg))
