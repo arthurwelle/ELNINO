@@ -311,6 +311,31 @@ select {
 .info-i:hover .info-tip, .info-i:focus .info-tip { display: block; }
 .info-tip a { color: inherit; text-decoration: underline; font-weight: 600; }
 
+/* === Botão modo limpo (print) =========================================== */
+#btn-limpo {
+  position: absolute;
+  top: 82px; right: 10px;         /* logo abaixo dos controles de zoom */
+  z-index: 11;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 29px; height: 29px;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-2);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+#btn-limpo:hover { color: var(--accent); }
+#btn-limpo.ativo {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+/* no modo limpo some a interface do mapa: sem basemap não há o que atribuir */
+#map-panel.modo-limpo .maplibregl-ctrl-group,
+#map-panel.modo-limpo .maplibregl-ctrl-attrib { display: none; }
+
 /* === Legenda choropleth ================================================= */
 #choro-legend {
   position: absolute;

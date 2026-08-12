@@ -2,7 +2,7 @@
 
 import { CULTURAS, debounce } from './config.js';
 import { loadBoot, loadMunicipio, loadEstado, loadRgi, janelaUf, resumo } from './data.js';
-import { map, initInteracao, selecionarNoMapa, valorFonteAtiva } from './map.js';
+import { map, initInteracao, selecionarNoMapa, valorFonteAtiva, initModoLimpo } from './map.js';
 import { initSidebar } from './sidebar.js';
 import { initBusca } from './busca.js';
 import { initTema } from './tema.js';
@@ -135,6 +135,7 @@ window.addEventListener('themechange', rerenderCharts);
 // boot
 (async () => {
   initTema();
+  initModoLimpo();
   await loadBoot();
   initSidebar();  // monta a UI da sidebar já; o choropleth pinta no load do mapa
   initInteracao(onSelect, onDeselect);

@@ -240,6 +240,30 @@ export function clearSelection() {
   }
 }
 
+// ------------------------------------------------------- modo limpo (print)
+// Esconde o basemap (nomes, rios, países vizinhos) e a interface do mapa,
+// deixando só os polígonos do Brasil sobre fundo liso — para captura de tela
+// em relatório. Sem basemap não há mais dado de OSM/CARTO na imagem, então a
+// atribuição sai junto.
+let modoLimpo = false;
+export function isModoLimpo() { return modoLimpo; }
+
+export function setModoLimpo(ativo) {
+  modoLimpo = ativo;
+  document.getElementById('map-panel').classList.toggle('modo-limpo', ativo);
+  applyMapTheme(document.documentElement.dataset.theme || 'escuro');
+}
+
+export function initModoLimpo() {
+  const btn = document.getElementById('btn-limpo');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    setModoLimpo(!modoLimpo);
+    btn.classList.toggle('ativo', modoLimpo);
+    btn.title = modoLimpo ? 'Mostrar mapa de fundo' : 'Modo limpo (só o Brasil, para print)';
+  });
+}
+
 // ---------------------------------------------------------------- temas
 const MAP_TEMAS = {
   escuro: { base: 'carto-dark',  bg: '#0d1117', mun: 'rgba(0,0,0,0.5)',
@@ -250,8 +274,10 @@ const MAP_TEMAS = {
 export function applyMapTheme(tema) {
   const t = MAP_TEMAS[tema] ?? MAP_TEMAS.escuro;
   const aplicar = () => {
-    map.setLayoutProperty('carto-dark', 'visibility', t.base === 'carto-dark' ? 'visible' : 'none');
-    map.setLayoutProperty('carto-light', 'visibility', t.base === 'carto-light' ? 'visible' : 'none');
+    // no modo limpo nenhum basemap fica visível, em qualquer tema
+    const vis = (id) => (!modoLimpo && t.base === id ? 'visible' : 'none');
+    map.setLayoutProperty('carto-dark', 'visibility', vis('carto-dark'));
+    map.setLayoutProperty('carto-light', 'visibility', vis('carto-light'));
     map.setPaintProperty('background', 'background-color', t.bg);
     map.setPaintProperty('municipios-outline', 'line-color', t.mun);
     map.setPaintProperty('estados-outline', 'line-color', t.uf);
