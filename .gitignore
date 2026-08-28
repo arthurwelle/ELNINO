@@ -24,3 +24,6 @@ node_modules/
 # geodados fonte (site usa copia em site/geo/)
 /GEO/
 /glimpse_*.txt
+
+# implementacao arquivada do indice de incerteza (nao versionada)
+/incerteza_handout/
