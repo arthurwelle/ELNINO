@@ -8,28 +8,20 @@ export const map = new maplibregl.Map({
   container: 'map-panel',
   style: {
     version: 8,
+    // fontes dos rotulos do basemap (nenhuma camada usa icone, entao sem sprite)
+    glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
     sources: {
-      'carto-dark': {
-        type: 'raster',
-        tiles: [
-          'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-          'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-          'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-          'https://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-        ],
-        tileSize: 256,
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
-      },
-      'carto-light': {
-        type: 'raster',
-        tiles: [
-          'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-          'https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-          'https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-          'https://d.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-        ],
-        tileSize: 256,
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
+      // Basemap vetorial do OpenFreeMap (esquema OpenMapTiles): sem chave de API e
+      // sem limite de requisicoes. A url e um TileJSON, nao o padrao de tile — assim
+      // a versao do planet (que eles rotacionam) e resolvida em tempo de execucao.
+      // Desenhamos poucas camadas a mao (agua, fronteiras, rotulos) em vez de importar
+      // o estilo deles, para as cores seguirem o tema do site.
+      basemap: {
+        type: 'vector',
+        url: 'https://tiles.openfreemap.org/planet',
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · ' +
+          '<a href="https://openfreemap.org/">OpenFreeMap</a> · ' +
+          '<a href="https://openmaptiles.org/">OpenMapTiles</a>',
       },
       municipios: {
         type: 'vector',
@@ -42,9 +34,89 @@ export const map = new maplibregl.Map({
       },
     },
     layers: [
+      // o background e a terra; a agua vem por cima. As cores de todas as camadas
+      // 'base-' sao definidas em applyMapTheme (MAP_TEMAS) — as daqui sao so o
+      // estado inicial, tema escuro.
       { id: 'background', type: 'background', paint: { 'background-color': '#0d1117' } },
-      { id: 'carto-dark', type: 'raster', source: 'carto-dark' },
-      { id: 'carto-light', type: 'raster', source: 'carto-light', layout: { visibility: 'none' } },
+      {
+        id: 'base-water', type: 'fill', source: 'basemap', 'source-layer': 'water',
+        // guarda de geometria e tunel: mesmos filtros do estilo positron do OpenFreeMap
+        filter: ['all',
+          ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false],
+          ['!=', ['get', 'brunnel'], 'tunnel'],
+        ],
+        paint: { 'fill-color': '#101c2b' },
+      },
+      {
+        id: 'base-waterway', type: 'line', source: 'basemap', 'source-layer': 'waterway',
+        minzoom: 6,
+        filter: ['all',
+          ['match', ['geometry-type'], ['LineString', 'MultiLineString'], true, false],
+          ['match', ['get', 'class'], ['river', 'canal'], true, false],
+        ],
+        paint: {
+          'line-color': '#17293c',
+          'line-width': ['interpolate', ['linear'], ['zoom'], 6, 0.4, 12, 1.6],
+        },
+      },
+      // so fronteiras de pais (admin_level 2): as divisas estaduais ja vem de
+      // ufs.pmtiles. maritime/disputed/claimed_by conforme o estilo positron.
+      {
+        id: 'base-boundary', type: 'line', source: 'basemap', 'source-layer': 'boundary',
+        filter: ['all',
+          ['==', ['get', 'admin_level'], 2],
+          ['!=', ['get', 'maritime'], 1],
+          ['!=', ['get', 'disputed'], 1],
+          ['!', ['has', 'claimed_by']],
+        ],
+        paint: {
+          'line-color': '#4a5765',
+          'line-width': ['interpolate', ['linear'], ['zoom'], 3, 0.5, 8, 1.2],
+        },
+      },
+      {
+        id: 'base-place-pais', type: 'symbol', source: 'basemap', 'source-layer': 'place',
+        maxzoom: 7,
+        filter: ['==', ['get', 'class'], 'country'],
+        layout: {
+          'text-field': ['coalesce', ['get', 'name:pt'], ['get', 'name']],
+          'text-font': ['Noto Sans Regular'],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 3, 10, 6, 14],
+          'text-transform': 'uppercase',
+          'text-letter-spacing': 0.1,
+          'text-max-width': 7,
+        },
+        paint: { 'text-color': '#93a1b0', 'text-halo-color': 'rgba(13,17,23,0.9)', 'text-halo-width': 1.2 },
+      },
+      // cidades e vilas em camadas separadas porque o escalonamento e por zoom
+      // (filter nao aceita ['zoom']): cidade desde o Brasil inteiro, vila so no detalhe
+      {
+        id: 'base-place-cidade', type: 'symbol', source: 'basemap', 'source-layer': 'place',
+        minzoom: 4,
+        filter: ['==', ['get', 'class'], 'city'],
+        layout: {
+          'text-field': ['coalesce', ['get', 'name:pt'], ['get', 'name']],
+          'text-font': ['Noto Sans Regular'],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 4, 10, 10, 13],
+          'text-max-width': 8,
+          // rank menor = lugar mais importante: decide quem sobrevive a colisao
+          'symbol-sort-key': ['coalesce', ['get', 'rank'], 20],
+        },
+        paint: { 'text-color': '#93a1b0', 'text-halo-color': 'rgba(13,17,23,0.9)', 'text-halo-width': 1.2 },
+      },
+      {
+        id: 'base-place-vila', type: 'symbol', source: 'basemap', 'source-layer': 'place',
+        minzoom: 7,
+        filter: ['==', ['get', 'class'], 'town'],
+        layout: {
+          'text-field': ['coalesce', ['get', 'name:pt'], ['get', 'name']],
+          'text-font': ['Noto Sans Regular'],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 7, 9, 11, 12],
+          'text-max-width': 8,
+          'symbol-sort-key': ['coalesce', ['get', 'rank'], 20],
+        },
+        paint: { 'text-color': '#93a1b0', 'text-halo-color': 'rgba(13,17,23,0.9)', 'text-halo-width': 1.2 },
+      },
       {
         id: 'municipios-fill', type: 'fill', source: 'municipios', 'source-layer': 'mun',
         paint: { 'fill-color': '#cccccc', 'fill-opacity': 0.85 },
@@ -243,8 +315,11 @@ export function clearSelection() {
 // ------------------------------------------------------- modo limpo (print)
 // Esconde o basemap (nomes, rios, países vizinhos) e a interface do mapa,
 // deixando só os polígonos do Brasil sobre fundo liso — para captura de tela
-// em relatório. Sem basemap não há mais dado de OSM/CARTO na imagem, então a
-// atribuição sai junto.
+// em relatório. Sem basemap não há mais dado de OSM/OpenFreeMap na imagem, então
+// a atribuição sai junto.
+// A visibilidade destas camadas é aplicada em applyMapTheme (chamado abaixo).
+const CAMADAS_BASE = ['base-water', 'base-waterway', 'base-boundary',
+                      'base-place-pais', 'base-place-cidade', 'base-place-vila'];
 let modoLimpo = false;
 export function isModoLimpo() { return modoLimpo; }
 
@@ -265,21 +340,31 @@ export function initModoLimpo() {
 }
 
 // ---------------------------------------------------------------- temas
+// bg = terra (e o fundo liso do modo limpo); agua/rio/fronteira/rotulo pintam as
+// camadas 'base-' do basemap vetorial.
 const MAP_TEMAS = {
-  escuro: { base: 'carto-dark',  bg: '#0d1117', mun: 'rgba(0,0,0,0.5)',
-            uf: '#8b98a8', rgi: '#e8ecf1' },
-  claro:  { base: 'carto-light', bg: '#dce6f0', mun: 'rgba(255,255,255,0.7)',
-            uf: '#5a6672', rgi: '#22303f' },
+  escuro: { claro: false, bg: '#0d1117', agua: '#101c2b', rio: '#17293c',
+            fronteira: '#4a5765', rotulo: '#93a1b0', halo: 'rgba(13,17,23,0.9)',
+            mun: 'rgba(0,0,0,0.5)', uf: '#8b98a8', rgi: '#e8ecf1' },
+  claro:  { claro: true,  bg: '#eef2f6', agua: '#cfe0ee', rio: '#b9d2e6',
+            fronteira: '#a3b1bf', rotulo: '#5a6672', halo: 'rgba(255,255,255,0.9)',
+            mun: 'rgba(255,255,255,0.7)', uf: '#5a6672', rgi: '#22303f' },
 };
 export function applyMapTheme(tema) {
   const t = MAP_TEMAS[tema] ?? MAP_TEMAS.escuro;
   const aplicar = () => {
     // no modo limpo nenhum basemap fica visível, em qualquer tema
-    const vis = (id) => (!modoLimpo && t.base === id ? 'visible' : 'none');
-    map.setLayoutProperty('carto-dark', 'visibility', vis('carto-dark'));
-    map.setLayoutProperty('carto-light', 'visibility', vis('carto-light'));
+    const vis = modoLimpo ? 'none' : 'visible';
+    for (const id of CAMADAS_BASE) map.setLayoutProperty(id, 'visibility', vis);
+    map.setPaintProperty('base-water', 'fill-color', t.agua);
+    map.setPaintProperty('base-waterway', 'line-color', t.rio);
+    map.setPaintProperty('base-boundary', 'line-color', t.fronteira);
+    for (const id of ['base-place-pais', 'base-place-cidade', 'base-place-vila']) {
+      map.setPaintProperty(id, 'text-color', t.rotulo);
+      map.setPaintProperty(id, 'text-halo-color', t.halo);
+    }
     // claro + modo limpo = fundo branco puro (melhor para print em relatório)
-    const bg = (modoLimpo && t.base === 'carto-light') ? '#ffffff' : t.bg;
+    const bg = (modoLimpo && t.claro) ? '#ffffff' : t.bg;
     map.setPaintProperty('background', 'background-color', bg);
     map.setPaintProperty('municipios-outline', 'line-color', t.mun);
     map.setPaintProperty('estados-outline', 'line-color', t.uf);
