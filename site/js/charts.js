@@ -379,28 +379,54 @@ export function chartRendimento(sel, anual, cultura, rotulo = '') {
     return;
   }
 
-  // tendência reconstruída da anomalia loess: tend = rend / (1 + anom/100)
-  const tend = dados
+  // Duas tendências desenhadas juntas para comparação:
+  //  - loess: reconstruída da anomalia publicada, tend = rend / (1 + anom/100)
+  //  - GAM log: coluna tend_gam_log, calculada no pipeline (spline penalizado, REML)
+  // O loess de grau 2 extrapola nas bordas da série; o GAM log serve de contraponto.
+  const tendLoess = dados
     .filter((r) => r.anom_rend_pct != null && r.anom_rend_pct > -100)
     .map((r) => ({ ano: r.ano, val: r.rend_kg_ha / (1 + r.anom_rend_pct / 100) }));
+  const tendGam = dados
+    .filter((r) => r.tend_gam_log != null && r.tend_gam_log > 0)
+    .map((r) => ({ ano: r.ano, val: r.tend_gam_log }));
 
   const x = d3.scaleLinear().domain(d3.extent(dados, (r) => r.ano)).range([0, c.iw]);
-  const y = d3.scaleLinear()
-    .domain([0, d3.max(dados, (r) => r.rend_kg_ha)]).nice().range([c.ih, 0]);
+  // a escala inclui as tendências: o loess pode estourar a faixa observada
+  const yMax = d3.max([
+    d3.max(dados, (r) => r.rend_kg_ha),
+    d3.max(tendLoess, (p) => p.val) ?? 0,
+    d3.max(tendGam, (p) => p.val) ?? 0,
+  ]);
+  const y = d3.scaleLinear().domain([0, yMax]).nice().range([c.ih, 0]);
   eixos(c, x, y, { xFmt: d3.format('d'), yFmt: (v) => fmtBR(v) });
 
   c.g.append('path').datum(dados)
     .attr('fill', 'none').attr('stroke', INK.axis).attr('stroke-width', 1.2)
     .attr('d', d3.line().x((r) => x(r.ano)).y((r) => y(r.rend_kg_ha)));
-  if (tend.length > 2) {
-    c.g.append('path').datum(tend)
-      .attr('fill', 'none').attr('stroke', INK.secondary)
-      .attr('stroke-width', 2).attr('stroke-dasharray', '6 4')
-      .attr('d', d3.line().x((p) => x(p.ano)).y((p) => y(p.val)).curve(d3.curveMonotoneX));
-    const fim = tend[tend.length - 1];
+
+  const linhaTend = d3.line().x((p) => x(p.ano)).y((p) => y(p.val)).curve(d3.curveMonotoneX);
+  const rotulos = [];
+  const desenhaTend = (serie, cor, traco, nome) => {
+    if (serie.length <= 2) return;
+    c.g.append('path').datum(serie)
+      .attr('fill', 'none').attr('stroke', cor)
+      .attr('stroke-width', 2).attr('stroke-dasharray', traco)
+      .attr('d', linhaTend);
+    const fim = serie[serie.length - 1];
+    rotulos.push({ x: x(fim.ano) + 4, y: y(fim.val), cor, nome });
+  };
+  desenhaTend(tendLoess, INK.secondary, '6 4', 'loess');
+  desenhaTend(tendGam, INK.tendGam, '2 3', 'GAM log');
+
+  // rótulos no fim das curvas; se colidirem, afasta o de baixo
+  rotulos.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < rotulos.length; i++) {
+    const folga = rotulos[i].y - rotulos[i - 1].y;
+    if (folga < 12) rotulos[i].y = rotulos[i - 1].y + 12;
+  }
+  for (const r of rotulos) {
     c.g.append('text').attr('class', 'direct-label')
-      .attr('x', x(fim.ano) + 4).attr('y', y(fim.val))
-      .attr('fill', INK.secondary).text('tendência');
+      .attr('x', r.x).attr('y', r.y).attr('fill', r.cor).text(r.nome);
   }
 
   const tt = tooltip(c.el);

@@ -46,6 +46,9 @@ setorder(pam, id_municipio, cultura, ano)
 pam[, c("anom_rend_pct", "delta_rend_pct") :=
       calc_metrica_rendimento(ano, rend_kg_ha), by = .(id_municipio, cultura)]
 
+# segunda tendencia, so para exibicao comparativa no grafico de rendimento
+pam[, tend_gam_log := calc_tend_gam_log(ano, rend_kg_ha), by = .(id_municipio, cultura)]
+
 # --- safra de milho dominante por UF (gerado aqui; usado por 07 e 08) -------
 pam[, uf := UF_COD[substr(id_municipio, 1, 2)]]
 if (any(c("milho1", "milho2") %in% pam$cultura)) {
@@ -128,7 +131,7 @@ out <- out[, .(
   geocod = id_municipio, ano, cultura,
   area_plantada_ha = area_plantada, area_colhida_ha = area_colhida,
   producao_t = quantidade_produzida, valor_mil_reais = valor_producao,
-  rend_kg_ha = round(rend_kg_ha), anom_rend_pct, delta_rend_pct,
+  rend_kg_ha = round(rend_kg_ha), anom_rend_pct, delta_rend_pct, tend_gam_log,
   fase, forte, roni_pico,
   chuva_out_mar_mm, veranico_max_out_mar, dias_tmax34_out_mar
 )]

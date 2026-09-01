@@ -24,6 +24,8 @@ export const INK = {
   get grid() { return themeVar('--grid', '#e1e0d9'); },
   get axis() { return themeVar('--axis', '#c3c2b7'); },
   get surface() { return themeVar('--surface', '#fcfcfb'); },
+  // segunda tendência (GAM log), comparada com o loess no gráfico de rendimento
+  get tendGam() { return themeVar('--tend-gam', '#12836d'); },
 };
 
 // Métricas principais (resumo.csv) — choropleth + hover.

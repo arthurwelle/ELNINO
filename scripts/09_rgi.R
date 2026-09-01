@@ -65,6 +65,8 @@ agg <- pam[!is.na(producao_t) & !is.na(area_colhida_ha) & area_colhida_ha > 0,
 setorder(agg, cod_rgi, cultura, ano)
 agg[, c("anom_rend_pct", "delta_rend_pct") :=
       calc_metrica_rendimento(ano, rend_kg_ha), by = .(cod_rgi, cultura)]
+# segunda tendencia, so para exibicao comparativa no grafico de rendimento
+agg[, tend_gam_log := calc_tend_gam_log(ano, rend_kg_ha), by = .(cod_rgi, cultura)]
 
 # fase ENSO pela janela da UF-mae (regiao intermediaria nao cruza UF)
 janelas <- fread(file.path(DIR_SITE_DATA, "janela_cultura_uf.csv"))
@@ -79,7 +81,7 @@ agg[, `:=`(roni_pico = round(roni, 2),
            forte = as.integer(abs(roni) >= ONI_FORTE))]
 
 agg <- agg[, .(cod_rgi, cultura, ano, rend_kg_ha, anom_rend_pct, delta_rend_pct,
-               fase, forte, roni_pico)]
+               tend_gam_log, fase, forte, roni_pico)]
 setorder(agg, cod_rgi, cultura, ano)
 
 n <- 0L

@@ -107,6 +107,31 @@ calc_metrica_rendimento <- function(ano, rend) {
   list(anom = round(anom, 1), delta = round(delta, 1))
 }
 
+# Tendencia alternativa por GAM na escala log, para comparacao visual nos graficos
+# de rendimento. Motivo: o loess de grau 2 extrapola nas bordas da serie e chega a
+# devolver tendencia proxima de zero (Salto do Jacui/RS, soja, 2024). O GAM penalizado
+# escolhe a suavidade por REML em cada serie e a escala log mantem a tendencia positiva.
+# Devolve o vetor de tendencia em kg/ha (NA onde nao ha ajuste). Ver o relatorio em
+# Ajuste_produtividade/ para a comparacao completa dos suavizadores.
+GAM_K_MAX <- 10L
+
+calc_tend_gam_log <- function(ano, rend) {
+  out <- rep(NA_real_, length(rend))
+  ok  <- which(!is.na(rend) & rend > 0)
+  n   <- length(ok)
+  if (n < LOESS_MIN_ANOS) return(out)   # mesmo piso do loess
+  k <- max(3L, min(GAM_K_MAX, floor(n / 4)))
+  fit <- tryCatch(
+    mgcv::gam(y ~ s(ano, bs = "tp", k = k),
+              data = data.frame(ano = ano[ok], y = log(rend[ok])), method = "REML"),
+    error = function(e) NULL)
+  if (is.null(fit)) return(out)
+  tend <- exp(as.numeric(predict(fit)))
+  tend[!is.finite(tend) | tend <= 0] <- NA_real_
+  out[ok] <- round(tend)
+  out
+}
+
 # maior sequencia de TRUE consecutivos
 max_run <- function(x) {
   x[is.na(x)] <- FALSE

@@ -33,6 +33,9 @@
   --fase-ln: #3987e5;
   --fase-n: #6f6e66;
 
+  /* segunda tendencia (GAM log) no grafico de rendimento */
+  --tend-gam: #35b39a;
+
   --sel-bg: #232a33;
   --sel-border: #3a444f;
 }
@@ -66,6 +69,9 @@
   --fase-en: #d73027;
   --fase-ln: #4575b4;
   --fase-n: #a3915c;
+
+  /* segunda tendencia (GAM log) no grafico de rendimento */
+  --tend-gam: #12836d;
 
   --sel-bg: #ffffff;
   --sel-border: #b9c2cc;
