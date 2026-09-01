@@ -27,3 +27,6 @@ node_modules/
 
 # implementacao arquivada do indice de incerteza (nao versionada)
 /incerteza_handout/
+
+# comparacao de suavizadores de tendencia (analise exploratoria, nao versionada)
+/Ajuste_produtividade/
