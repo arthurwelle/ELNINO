@@ -30,3 +30,6 @@ node_modules/
 
 # comparacao de suavizadores de tendencia (analise exploratoria, nao versionada)
 /Ajuste_produtividade/
+
+# relatorio do subgrupo Adaptacao do GT El Nino (fora do versionamento)
+/matriz/
