@@ -49,6 +49,7 @@ function aplicarMetrica(met) {
     dir: met.dir,
   });
   if (met.colRgi) setBordasRgi(porRegiao);
+  restringeCulturasRecorte(met.culturasRecorte);
 }
 
 // --- aplicar seleção do explorador -----------------------------------------
@@ -79,6 +80,7 @@ async function aplicarExplorador() {
   });
   // desmarca rádios das métricas principais
   document.querySelectorAll('#sb-metricas input[type=radio]').forEach((r) => { r.checked = false; });
+  restringeCulturasRecorte(null);
 }
 
 // --- filtro de concentração da produção -------------------------------------
@@ -107,6 +109,33 @@ async function aplicarConcentracao() {
   setNotaFiltro(`mostrando ${lim}% da produção de ${rotulo.toLowerCase()}`);
   info.textContent = `${sel.length.toLocaleString('pt-BR')} de ` +
     `${rank.length.toLocaleString('pt-BR')} municípios produtores`;
+}
+
+// Indicador de rendimento de uma cultura só admite recorte pela mesma cultura
+// (ver o rendimento da soja só nos maiores produtores de arroz não faz sentido).
+// permitidas = lista de ids de CULTURAS, ou null para liberar todas. As opções
+// são reconstruídas, e não escondidas: <option hidden> falha no Safari iOS.
+let culturasRecorteAtivas = null;
+
+function restringeCulturasRecorte(permitidas) {
+  const chave = permitidas ? permitidas.join(',') : null;
+  if (chave === culturasRecorteAtivas) return;
+  culturasRecorteAtivas = chave;
+
+  const sel = document.getElementById('conc-cultura');
+  const atual = sel.value;
+  const lista = permitidas ? CULTURAS.filter((c) => permitidas.includes(c.id)) : CULTURAS;
+  sel.replaceChildren(...lista.map((c) => {
+    const o = document.createElement('option');
+    o.value = c.id; o.textContent = c.label;
+    return o;
+  }));
+  if (lista.some((c) => c.id === atual)) {
+    sel.value = atual;
+  } else {
+    sel.value = lista[0].id;
+    aplicarConcentracao(); // cultura mudou: refaz o filtro se estiver ativo
+  }
 }
 
 // --- montar sidebar ---------------------------------------------------------
