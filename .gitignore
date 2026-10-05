@@ -33,3 +33,9 @@ node_modules/
 
 # relatorio do subgrupo Adaptacao do GT El Nino (fora do versionamento)
 /matriz/
+
+# handout portatil da migracao do basemap (para outros projetos)
+/handout-basemap-carto-para-openfreemap.md
+
+# PDF de referencia do indice de incerteza
+/Legacy/*.pdf
